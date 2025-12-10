@@ -1,3 +1,4 @@
+import 'package:baby_care/screens/auth/login/login.dart';
 import 'package:flutter/material.dart';
 // import 'package:baby_care/utils/app_colors.dart'; // Uncomment if you use your file
 import 'package:google_fonts/google_fonts.dart';
@@ -156,8 +157,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_currentPage == _onboardingData.length - 1) {
-                          // Navigate
-                          debugPrint("Navigate Home");
+                          // Navigate to Login Screen
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 400),
