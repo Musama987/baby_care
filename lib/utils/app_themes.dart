@@ -9,22 +9,67 @@ class AppTheme {
   // Constants for spacing and borders extracted from images
   static const double _borderRadius = 16.0;
   static const double _defaultPadding = 16.0;
-  static const String _fontFamily = 'Poppins'; // Suggested modern sans-serif font
+  static const String _fontFamily =
+      'Poppins'; // Suggested modern sans-serif font
 
   // Define the base TextTheme with appropriate sizes and weights
   static TextTheme get _baseTextTheme {
     return const TextTheme(
-      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, fontFamily: _fontFamily),
-      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, fontFamily: _fontFamily),
-      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: _fontFamily),
-      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: _fontFamily),
-      headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, fontFamily: _fontFamily),
-      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: _fontFamily),
-      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, fontFamily: _fontFamily),
-      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, fontFamily: _fontFamily),
-      bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, fontFamily: _fontFamily),
-      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, fontFamily: _fontFamily), // Button text
-      bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, fontFamily: _fontFamily),
+      displayLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        fontFamily: _fontFamily,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        fontFamily: _fontFamily,
+      ),
+      displaySmall: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        fontFamily: _fontFamily,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        fontFamily: _fontFamily,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        fontFamily: _fontFamily,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        fontFamily: _fontFamily,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        fontFamily: _fontFamily,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        fontFamily: _fontFamily,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        fontFamily: _fontFamily,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        fontFamily: _fontFamily,
+      ), // Button text
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        fontFamily: _fontFamily,
+      ),
     );
   }
 
@@ -120,9 +165,7 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
-      iconTheme: const IconThemeData(
-        color: AppColors.iconLight,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.iconLight),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceLight,
         selectedItemColor: AppColors.primary,
@@ -197,9 +240,7 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
-      iconTheme: const IconThemeData(
-        color: AppColors.iconDark,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.iconDark),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceDark,
         selectedItemColor: AppColors.primary,
