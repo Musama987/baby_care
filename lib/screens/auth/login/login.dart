@@ -14,6 +14,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,136 +31,181 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Spacer(),
-                        // --- Logo ---
-                        Align(
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.eco_rounded, // Leaf icon placeholder
-                            size: 60,
-                            color: AppColors.primary,
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Spacer(),
+                          // --- Logo ---
+                          Align(
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.eco_rounded, // Leaf icon placeholder
+                              size: 60,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // --- Title ---
-                        Text(
-                          "Welcome Back",
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.displayLarge
-                              ?.copyWith(
-                                color: const Color(
-                                  0xFF1E2623,
-                                ), // Darker text for title
-                                fontSize: 28,
-                              ),
-                        ),
-                        const SizedBox(height: 40),
-
-                        // --- Inputs ---
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(hintText: 'Email'),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            hintText: 'Password',
+                          // --- Title ---
+                          Text(
+                            "Welcome Back",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.displayLarge
+                                ?.copyWith(
+                                  color: const Color(
+                                    0xFF1E2623,
+                                  ), // Darker text for title
+                                  fontSize: 28,
+                                ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 40),
 
-                        // --- Action Button ---
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // TODO: Implement Login Logic
+                          // --- Inputs ---
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              hintText: 'Email',
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              ).hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
                             },
-                            child: const Text("Log In"),
                           ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // --- Forgot Password ---
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ForgotPasswordScreen(),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
                               ),
-                            );
-                          },
-                          child: Text(
-                            "Forgot Password?",
-                            style: GoogleFonts.dmSans(
-                              color: const Color(
-                                0xFFBCAAA4,
-                              ), // Soft brownish/grey
-                              fontWeight: FontWeight.w500,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // --- Action Button ---
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  // TODO: Implement Login Logic
+                                }
+                              },
+                              child: const Text("Log In"),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
-                        // --- Social Buttons ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildSocialButton(
-                              icon: Icons
-                                  .g_mobiledata, // Placeholder for Google Logo
-                              onTap: () {},
+                          // --- Forgot Password ---
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgotPasswordScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "Forgot Password?",
+                              style: GoogleFonts.dmSans(
+                                color: const Color(
+                                  0xFFBCAAA4,
+                                ), // Soft brownish/grey
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                            const SizedBox(width: 20),
-                            _buildSocialButton(icon: Icons.apple, onTap: () {}),
-                          ],
-                        ),
+                          ),
 
-                        const Spacer(),
+                          const SizedBox(height: 20),
 
-                        // --- Navigation to Sign Up ---
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 20.0),
-                          child: Row(
+                          // --- Social Buttons ---
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                "Don't have an account? ",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              _buildSocialButton(
+                                icon: Icons
+                                    .g_mobiledata, // Placeholder for Google Logo
+                                onTap: () {},
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SignupScreen(),
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  "Sign Up",
-                                  style: Theme.of(context).textTheme.labelLarge
-                                      ?.copyWith(color: AppColors.primary),
-                                ),
+                              const SizedBox(width: 20),
+                              _buildSocialButton(
+                                icon: Icons.apple,
+                                onTap: () {},
                               ),
                             ],
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 24),
+                          const Spacer(),
+
+                          // --- Navigation to Sign Up ---
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Don't have an account? ",
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Sign Up",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(color: AppColors.primary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

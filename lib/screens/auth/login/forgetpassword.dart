@@ -10,6 +10,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -28,54 +29,70 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 40),
 
-                Text(
-                  "Reset Password",
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    color: const Color(0xFF1E2623),
-                    fontSize: 28,
+                  Text(
+                    "Reset Password",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      color: const Color(0xFF1E2623),
+                      fontSize: 28,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                Text(
-                  "Enter your email to receive\ninstructions.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    height: 1.5,
+                  Text(
+                    "Enter your email to receive\ninstructions.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-                // --- Input ---
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(hintText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-
-                const SizedBox(height: 32),
-
-                // --- Send Button ---
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement Reset Logic
+                  // --- Input ---
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(hintText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value)) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
                     },
-                    child: const Text("Send Link"),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 32),
+
+                  // --- Send Button ---
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          // TODO: Implement Reset Logic
+                        }
+                      },
+                      child: const Text("Send Link"),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
