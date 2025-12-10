@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -9,66 +10,49 @@ class AppTheme {
   // Constants for spacing and borders extracted from images
   static const double _borderRadius = 16.0;
   static const double _defaultPadding = 16.0;
-  static const String _fontFamily =
-      'Poppins'; // Suggested modern sans-serif font
-
   // Define the base TextTheme with appropriate sizes and weights
   static TextTheme get _baseTextTheme {
-    return const TextTheme(
-      displayLarge: TextStyle(
+    return TextTheme(
+      displayLarge: GoogleFonts.dmSerifDisplay(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        fontFamily: _fontFamily,
       ),
-      displayMedium: TextStyle(
+      displayMedium: GoogleFonts.dmSerifDisplay(
         fontSize: 28,
         fontWeight: FontWeight.bold,
-        fontFamily: _fontFamily,
       ),
-      displaySmall: TextStyle(
+      displaySmall: GoogleFonts.dmSerifDisplay(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        fontFamily: _fontFamily,
       ),
-      headlineMedium: TextStyle(
+      headlineMedium: GoogleFonts.dmSerifDisplay(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        fontFamily: _fontFamily,
       ),
-      headlineSmall: TextStyle(
+      headlineSmall: GoogleFonts.dmSerifDisplay(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        fontFamily: _fontFamily,
       ),
-      titleLarge: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        fontFamily: _fontFamily,
-      ),
-      titleMedium: TextStyle(
+      titleLarge: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600),
+      titleMedium: GoogleFonts.dmSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
-        fontFamily: _fontFamily,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: GoogleFonts.dmSans(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        fontFamily: _fontFamily,
       ),
-      bodyMedium: TextStyle(
+      bodyMedium: GoogleFonts.dmSans(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        fontFamily: _fontFamily,
       ),
-      labelLarge: TextStyle(
+      labelLarge: GoogleFonts.dmSans(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        fontFamily: _fontFamily,
       ), // Button text
-      bodySmall: TextStyle(
+      bodySmall: GoogleFonts.dmSans(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        fontFamily: _fontFamily,
       ),
     );
   }
@@ -105,7 +89,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: _fontFamily,
+      fontFamily: GoogleFonts.dmSans().fontFamily,
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundLight,
@@ -180,7 +164,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: _fontFamily,
+      fontFamily: GoogleFonts.dmSans().fontFamily,
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundDark,
