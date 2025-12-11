@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
-import '../../utils/app_themes.dart';
+import 'baby_setup.dart'; // Import the new screen
 
 class RelationshipScreen extends StatefulWidget {
   const RelationshipScreen({super.key});
@@ -33,7 +33,6 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
           color: AppColors.textDark,
           onPressed: () => Navigator.pop(context),
         ),
-        // Removed the "A06 Role Selection" title as requested
         centerTitle: true,
       ),
       body: SafeArea(
@@ -64,8 +63,7 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio:
-                        0.85, // Adjust for card height/width ratio
+                    childAspectRatio: 0.85,
                   ),
                   itemCount: _roles.length,
                   itemBuilder: (context, index) {
@@ -89,9 +87,12 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
                 child: ElevatedButton(
                   onPressed: _selectedIndex != -1
                       ? () {
-                          // TODO: Handle navigation or data saving
-                          print(
-                            "Selected Role: ${_roles[_selectedIndex]['title']}",
+                          // Navigate to Baby Setup Screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BabySetupScreen(),
+                            ),
                           );
                         }
                       : null, // Disable if nothing selected
@@ -151,10 +152,9 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
               ),
             if (isSelected)
               BoxShadow(
-                // Shadow matching the border color (Green)
                 color: AppColors.primary.withOpacity(0.39),
                 blurRadius: 20,
-                spreadRadius: 8, // Slight spread for "border shadow" effect
+                spreadRadius: 8,
                 offset: const Offset(0, 5),
               ),
           ],
@@ -162,12 +162,10 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon Circle
             Container(
               height: 60,
               width: 60,
               decoration: BoxDecoration(
-                // Slight tint for icon background if needed, currently transparent/white based on image
                 shape: BoxShape.circle,
                 color: isSelected
                     ? AppColors.primary.withOpacity(0.1)
@@ -176,12 +174,10 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
               child: Icon(
                 icon,
                 size: 32,
-                // Using specific colors to mimic the image's avatar style loosely
                 color: isSelected ? AppColors.primary : const Color(0xFF8B6B61),
               ),
             ),
             const SizedBox(height: 12),
-            // Text
             Text(
               title,
               textAlign: TextAlign.center,
