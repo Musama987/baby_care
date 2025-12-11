@@ -2,7 +2,6 @@ import 'package:baby_care/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'utils/app_themes.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -15,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Baby Care',
       debugShowCheckedModeBanner: false,
-      
+
       // Apply the Custom Themes defined in app_themes.dart
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

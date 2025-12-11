@@ -50,4 +50,17 @@ class AppColors {
 
   // Shadows
   static const Color shadow = Color(0x1F000000); // Light shadow
+
+  // Background Colors
+  static const Color background = Color(0xFFF8F9FA);
+  static const Color white = Colors.white;
+
+  // Text Colors
+  static const Color textDark = Color(0xFF1A1B1E);
+  static const Color textLightGray = Color(0xFF8F9299);
+
+  // UI Elements (Borders, Unselected states)
+  static const Color inputFill = Color(0xFFF0F2F5);
+  static const Color borderGray = Color(0xFFE0E0E0);
+  static const Color shadowColor = Color(0x1F000000); // Soft black shadow
 }

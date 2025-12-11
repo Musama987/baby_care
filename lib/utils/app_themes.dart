@@ -7,50 +7,55 @@ class AppTheme {
   // Private constructor
   AppTheme._();
 
-  // Constants for spacing and borders extracted from images
+  // Constants for spacing and borders
   static const double _borderRadius = 16.0;
+  static const double _buttonRadius = 30.0; // New Code: Rounder buttons
   static const double _defaultPadding = 16.0;
-  // Define the base TextTheme with appropriate sizes and weights
+
+  // Define the base TextTheme using Poppins (New Code Preference)
   static TextTheme get _baseTextTheme {
     return TextTheme(
-      displayLarge: GoogleFonts.dmSerifDisplay(
+      displayLarge: GoogleFonts.poppins(
         fontSize: 32,
         fontWeight: FontWeight.bold,
       ),
-      displayMedium: GoogleFonts.dmSerifDisplay(
+      displayMedium: GoogleFonts.poppins(
         fontSize: 28,
         fontWeight: FontWeight.bold,
       ),
-      displaySmall: GoogleFonts.dmSerifDisplay(
+      displaySmall: GoogleFonts.poppins(
         fontSize: 24,
         fontWeight: FontWeight.bold,
       ),
-      headlineMedium: GoogleFonts.dmSerifDisplay(
+      headlineMedium: GoogleFonts.poppins(
         fontSize: 20,
         fontWeight: FontWeight.w600,
       ),
-      headlineSmall: GoogleFonts.dmSerifDisplay(
+      headlineSmall: GoogleFonts.poppins(
         fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
-      titleLarge: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600),
-      titleMedium: GoogleFonts.dmSans(
+      titleLarge: GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: GoogleFonts.poppins(
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
-      bodyLarge: GoogleFonts.dmSans(
+      bodyLarge: GoogleFonts.poppins(
         fontSize: 16,
         fontWeight: FontWeight.normal,
       ),
-      bodyMedium: GoogleFonts.dmSans(
+      bodyMedium: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.normal,
       ),
-      labelLarge: GoogleFonts.dmSans(
-        fontSize: 14,
+      labelLarge: GoogleFonts.poppins(
+        fontSize: 16, // New Code: Slightly larger button text
         fontWeight: FontWeight.w600,
-      ), // Button text
-      bodySmall: GoogleFonts.dmSans(
+      ),
+      bodySmall: GoogleFonts.poppins(
         fontSize: 12,
         fontWeight: FontWeight.normal,
       ),
@@ -61,10 +66,14 @@ class AppTheme {
   static final ButtonStyle _elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: AppColors.primary,
     foregroundColor: Colors.white,
-    elevation: 0,
+    elevation: 4, // New Code: Added elevation
+    shadowColor: AppColors.primary.withOpacity(0.4), // New Code: Shadow
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    minimumSize: const Size(double.infinity, 56), // New Code: Taller buttons
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_borderRadius),
+      borderRadius: BorderRadius.circular(
+        _buttonRadius,
+      ), // New Code: 30px radius
     ),
     textStyle: _baseTextTheme.labelLarge,
   );
@@ -73,8 +82,11 @@ class AppTheme {
     foregroundColor: AppColors.primary,
     side: const BorderSide(color: AppColors.primary, width: 1.5),
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    minimumSize: const Size(double.infinity, 56),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_borderRadius),
+      borderRadius: BorderRadius.circular(
+        _buttonRadius,
+      ), // New Code: 30px radius
     ),
     textStyle: _baseTextTheme.labelLarge,
   );
@@ -89,71 +101,82 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: GoogleFonts.dmSans().fontFamily,
+      fontFamily: GoogleFonts.poppins().fontFamily, // New Code: Poppins
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
-      scaffoldBackgroundColor: AppColors.backgroundLight,
+      scaffoldBackgroundColor:
+          AppColors.background, // New Code: specific background
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
-        secondary: AppColors.accentYellow,
-        background: AppColors.backgroundLight,
-        surface: AppColors.surfaceLight,
+        secondary: AppColors
+            .primaryLight, // Ensure this exists in AppColors or use fallback
+        background: AppColors.background,
+        surface: AppColors.white,
         onPrimary: Colors.white,
         onSecondary: Colors.black,
-        onBackground: AppColors.textPrimaryLight,
-        onSurface: AppColors.textPrimaryLight,
+        onBackground: AppColors.textDark,
+        onSurface: AppColors.textDark,
         error: AppColors.error,
-        outline: AppColors.borderLight,
+        outline: AppColors.borderGray,
       ),
       textTheme: _baseTextTheme.apply(
-        bodyColor: AppColors.textSecondaryLight,
-        displayColor: AppColors.textPrimaryLight,
+        bodyColor: AppColors.textLightGray, // New Code text color
+        displayColor: AppColors.textDark,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.backgroundLight,
-        foregroundColor: AppColors.textPrimaryLight,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textDark,
         elevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        iconTheme: IconThemeData(color: AppColors.iconLight),
+        iconTheme: IconThemeData(color: AppColors.textDark),
+        titleTextStyle: TextStyle(
+          color: AppColors.textDark,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Poppins',
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(style: _elevatedButtonStyle),
       outlinedButtonTheme: OutlinedButtonThemeData(style: _outlinedButtonStyle),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceLight,
-        contentPadding: const EdgeInsets.all(_defaultPadding),
+        fillColor: AppColors.inputFill, // New Code: Specific grey fill
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: const BorderSide(color: AppColors.borderLight),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: const BorderSide(color: AppColors.borderLight),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        hintStyle: TextStyle(color: AppColors.textTertiaryLight),
+        hintStyle: const TextStyle(color: AppColors.textLightGray),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surfaceLight,
+        color: AppColors.white,
         elevation: 2,
-        shadowColor: AppColors.shadow,
+        shadowColor: AppColors.shadowColor,
         shape: _cardShape,
         margin: _cardMargin,
       ),
       dividerTheme: const DividerThemeData(
-        color: AppColors.borderLight,
+        color: AppColors.borderGray,
         thickness: 1,
         space: 1,
       ),
-      iconTheme: const IconThemeData(color: AppColors.iconLight),
+      iconTheme: const IconThemeData(color: AppColors.textDark),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: AppColors.white,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textTertiaryLight,
+        unselectedItemColor: AppColors.textLightGray,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
@@ -164,33 +187,33 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      fontFamily: GoogleFonts.dmSans().fontFamily,
+      fontFamily: GoogleFonts.poppins().fontFamily,
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundDark,
       colorScheme: ColorScheme.dark(
         primary: AppColors.primary,
-        secondary: AppColors.accentYellow,
+        secondary: AppColors.primaryLight,
         background: AppColors.backgroundDark,
         surface: AppColors.surfaceDark,
         onPrimary: Colors.white,
         onSecondary: Colors.black,
-        onBackground: AppColors.textPrimaryDark,
-        onSurface: AppColors.textPrimaryDark,
+        onBackground: Colors.white,
+        onSurface: Colors.white,
         error: AppColors.error,
-        outline: AppColors.borderDark,
+        outline: AppColors.borderGray,
       ),
       textTheme: _baseTextTheme.apply(
-        bodyColor: AppColors.textSecondaryDark,
-        displayColor: AppColors.textPrimaryDark,
+        bodyColor: Colors.grey[300],
+        displayColor: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.backgroundDark,
-        foregroundColor: AppColors.textPrimaryDark,
+        foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        iconTheme: IconThemeData(color: AppColors.iconDark),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(style: _elevatedButtonStyle),
       outlinedButtonTheme: OutlinedButtonThemeData(style: _outlinedButtonStyle),
@@ -200,17 +223,17 @@ class AppTheme {
         contentPadding: const EdgeInsets.all(_defaultPadding),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: const BorderSide(color: AppColors.borderDark),
+          borderSide: const BorderSide(color: Colors.white12),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
-          borderSide: const BorderSide(color: AppColors.borderDark),
+          borderSide: const BorderSide(color: Colors.white12),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_borderRadius),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        hintStyle: TextStyle(color: AppColors.textTertiaryDark),
+        hintStyle: TextStyle(color: Colors.grey[600]),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surfaceDark,
@@ -220,15 +243,15 @@ class AppTheme {
         margin: _cardMargin,
       ),
       dividerTheme: const DividerThemeData(
-        color: AppColors.borderDark,
+        color: Colors.white12,
         thickness: 1,
         space: 1,
       ),
-      iconTheme: const IconThemeData(color: AppColors.iconDark),
+      iconTheme: const IconThemeData(color: Colors.white),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceDark,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textTertiaryDark,
+        unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
