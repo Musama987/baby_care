@@ -108,22 +108,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 30),
 
                         // IMAGE
                         // Using Expanded ensures image fills remaining space nicely
                         Expanded(
                           child: Center(
                             child: Image.asset(
-                              height: 500,
+                              height: 400,
+                              width: 300,
                               _onboardingData[index]['image'],
                               fit: BoxFit.contain,
-                              // Only applies if you see jitter, otherwise remove gaplessPlayback
                               gaplessPlayback: true,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 30),
                       ],
                     ),
                   );

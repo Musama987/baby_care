@@ -1,5 +1,6 @@
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -14,18 +15,23 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+
+  // Single state variable to control BOTH password fields
+  bool _arePasswordsVisible = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDFDFD),
+      // Ensures the UI moves up when keyboard appears
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          color: Colors.black87,
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -35,6 +41,7 @@ class _SignupScreenState extends State<SignupScreen> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -45,22 +52,40 @@ class _SignupScreenState extends State<SignupScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // 1. Fixed spacing at top so it doesn't touch top when keyboard opens
+                          const SizedBox(height: 20),
+
+                          // Spacer pushes content to center (collapses when keyboard opens)
                           const Spacer(),
+
+                          // --- Header ---
                           Text(
                             "Create Account",
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.displayLarge
-                                ?.copyWith(
-                                  color: const Color(0xFF1E2623),
-                                  fontSize: 28,
-                                ),
+                            style: GoogleFonts.dmSans(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E2623),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Please fill the details to sign up",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                           const SizedBox(height: 40),
 
                           // --- Inputs ---
-                          TextFormField(
+
+                          // Name Field
+                          _buildTextField(
                             controller: _nameController,
-                            decoration: const InputDecoration(hintText: 'Name'),
+                            hint: 'Full Name',
+                            icon: Icons.person_outline_rounded,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your name';
@@ -69,12 +94,13 @@ class _SignupScreenState extends State<SignupScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+
+                          // Email Field
+                          _buildTextField(
                             controller: _emailController,
-                            decoration: const InputDecoration(
-                              hintText: 'Email',
-                            ),
-                            keyboardType: TextInputType.emailAddress,
+                            hint: 'Email',
+                            icon: Icons.email_outlined,
+                            inputType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
@@ -88,24 +114,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+
+                          // Password Field
+                          _buildTextField(
                             controller: _passwordController,
-                            obscureText: !_isPasswordVisible,
-                            decoration: InputDecoration(
-                              hintText: 'Password',
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                              ),
-                            ),
+                            hint: 'Password',
+                            icon: Icons.lock_outline,
+                            isPassword: true,
+                            // Uses the shared state variable
+                            isPasswordVisible: _arePasswordsVisible,
+                            onVisibilityToggle: _togglePasswordVisibility,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your password';
@@ -117,25 +135,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+
+                          // Confirm Password Field
+                          _buildTextField(
                             controller: _confirmPasswordController,
-                            obscureText: !_isConfirmPasswordVisible,
-                            decoration: InputDecoration(
-                              hintText: 'Confirm Password',
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isConfirmPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isConfirmPasswordVisible =
-                                        !_isConfirmPasswordVisible;
-                                  });
-                                },
-                              ),
-                            ),
+                            hint: 'Confirm Password',
+                            icon: Icons.lock_outline,
+                            isPassword: true,
+                            // Uses the SAME shared state variable
+                            isPasswordVisible: _arePasswordsVisible,
+                            onVisibilityToggle: _togglePasswordVisibility,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please confirm your password';
@@ -153,12 +162,50 @@ class _SignupScreenState extends State<SignupScreen> {
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  // TODO: Implement Registration Logic
-                                }
-                              },
-                              child: const Text("Sign Up"),
+                              onPressed: _isLoading
+                                  ? null
+                                  : () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+
+                                        await Future.delayed(
+                                          const Duration(seconds: 1),
+                                        );
+
+                                        if (mounted) {
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
+                                          // TODO: Implement Registration Logic
+                                        }
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Sign Up",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
 
@@ -172,16 +219,18 @@ class _SignupScreenState extends State<SignupScreen> {
                               children: [
                                 Text(
                                   "Already have an account? ",
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  style: GoogleFonts.dmSans(
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                                 GestureDetector(
                                   onTap: () => Navigator.pop(context),
                                   child: Text(
                                     "Log In",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(color: AppColors.primary),
+                                    style: GoogleFonts.dmSans(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -196,6 +245,66 @@ class _SignupScreenState extends State<SignupScreen> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  // Logic to toggle BOTH fields at the same time
+  void _togglePasswordVisibility() {
+    setState(() {
+      _arePasswordsVisible = !_arePasswordsVisible;
+    });
+  }
+
+  // Reusable TextField Widget (Matches Login Screen)
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType inputType = TextInputType.text,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onVisibilityToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword && !isPasswordVisible,
+      keyboardType: inputType,
+      validator: validator,
+      style: GoogleFonts.dmSans(color: Colors.black87),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.dmSans(color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5), // Soft grey background
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  // 2. Fixed Eye Icon Color
+                  color: Colors.grey.shade400,
+                ),
+                onPressed: onVisibilityToggle,
+              )
+            : null,
       ),
     );
   }

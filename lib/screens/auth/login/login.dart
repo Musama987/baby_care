@@ -17,17 +17,22 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDFD), // Matches the creamy off-white
+      backgroundColor: const Color(0xFFFDFDFD),
+      // resizeToAvoidBottomInset ensures the screen moves up when keyboard opens
+      resizeToAvoidBottomInset: true,
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
+                // Physics ensures it only scrolls if content is larger than screen (e.g., keyboard open)
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -35,42 +40,45 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Form(
                       key: _formKey,
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // Spacer pushes content to center
                           const Spacer(),
+
                           // --- Logo ---
-                          Align(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.eco_rounded, // Leaf icon placeholder
-                              size: 60,
-                              color: AppColors.primary,
-                            ),
+                          Icon(
+                            Icons.eco_rounded,
+                            size: 64,
+                            color: AppColors.primary,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
                           // --- Title ---
                           Text(
                             "Welcome Back",
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.displayLarge
-                                ?.copyWith(
-                                  color: const Color(
-                                    0xFF1E2623,
-                                  ), // Darker text for title
-                                  fontSize: 28,
-                                ),
+                            style: GoogleFonts.dmSans(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E2623),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Please login to continue",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                           const SizedBox(height: 40),
 
                           // --- Inputs ---
-                          TextFormField(
+                          _buildTextField(
                             controller: _emailController,
-                            decoration: const InputDecoration(
-                              hintText: 'Email',
-                            ),
-                            keyboardType: TextInputType.emailAddress,
+                            hint: 'Email',
+                            icon: Icons.email_outlined,
+                            inputType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
@@ -84,24 +92,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+                          _buildTextField(
                             controller: _passwordController,
-                            obscureText: !_isPasswordVisible,
-                            decoration: InputDecoration(
-                              hintText: 'Password',
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                              ),
-                            ),
+                            hint: 'Password',
+                            icon: Icons.lock_outline,
+                            isPassword: true,
+                            isPasswordVisible: _isPasswordVisible,
+                            onVisibilityToggle: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your password';
@@ -112,61 +113,107 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 24),
 
-                          // --- Action Button ---
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
+                          const SizedBox(height: 12),
+
+                          // --- Forgot Password (Aligned Right) ---
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
                               onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RelationshipScreen(),
-                                    ),
-                                  );
-                                }
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForgotPasswordScreen(),
+                                  ),
+                                );
                               },
-                              child: const Text("Log In"),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // --- Forgot Password ---
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ForgotPasswordScreen(),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(50, 30),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                "Forgot Password?",
+                                style: GoogleFonts.dmSans(
+                                  color: const Color(0xFFBCAAA4),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
                                 ),
-                              );
-                            },
-                            child: Text(
-                              "Forgot Password?",
-                              style: GoogleFonts.dmSans(
-                                color: const Color(
-                                  0xFFBCAAA4,
-                                ), // Soft brownish/grey
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
+
+                          // --- Login Button ---
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+
+                                        await Future.delayed(
+                                          const Duration(seconds: 1),
+                                        );
+
+                                        if (mounted) {
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
+
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const RelationshipScreen(),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Log In",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
 
                           // --- Social Buttons ---
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _buildSocialButton(
-                                icon: Icons
-                                    .g_mobiledata, // Placeholder for Google Logo
+                                icon: Icons.g_mobiledata,
                                 onTap: () {},
                               ),
                               const SizedBox(width: 20),
@@ -177,18 +224,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
 
-                          const SizedBox(height: 24),
+                          // Spacer pushes bottom text to the very bottom
                           const Spacer(),
 
                           // --- Navigation to Sign Up ---
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
+                            padding: const EdgeInsets.symmetric(vertical: 24.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   "Don't have an account? ",
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  style: GoogleFonts.dmSans(
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                                 GestureDetector(
                                   onTap: () {
@@ -202,10 +251,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   },
                                   child: Text(
                                     "Sign Up",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(color: AppColors.primary),
+                                    style: GoogleFonts.dmSans(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -224,22 +273,76 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Helper widget for nicer TextFields
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType inputType = TextInputType.text,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onVisibilityToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword && !isPasswordVisible,
+      keyboardType: inputType,
+      validator: validator,
+      style: GoogleFonts.dmSans(color: Colors.black87),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.dmSans(color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
+        filled: true,
+        fillColor: const Color(0xFFF5F5F5), // Light grey fill
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  // FIX: Matched color with other text field elements
+                  color: Colors.grey.shade400,
+                ),
+                onPressed: onVisibilityToggle,
+              )
+            : null,
+      ),
+    );
+  }
+
   Widget _buildSocialButton({
     required IconData icon,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 80,
+        width: 70,
         height: 50,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.grey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
