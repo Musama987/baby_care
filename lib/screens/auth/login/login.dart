@@ -1,5 +1,6 @@
 import 'package:baby_care/screens/auth/login/forgetpassword.dart';
 import 'package:baby_care/screens/auth/signup/signup.dart';
+import 'package:baby_care/screens/baby_relationship/realtionship.dart';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -120,7 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  // TODO: Implement Login Logic
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RelationshipScreen(),
+                                    ),
+                                  );
                                 }
                               },
                               child: const Text("Log In"),

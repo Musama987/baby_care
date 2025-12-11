@@ -1,3 +1,6 @@
+import 'package:baby_care/screens/auth/login/login.dart';
+import 'package:baby_care/screens/auth/signup/signup.dart';
+import 'package:baby_care/screens/baby_relationship/realtionship.dart';
 import 'package:baby_care/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'utils/app_themes.dart';
@@ -19,9 +22,15 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system, // Uses device system setting (Light/Dark)
-
-      // Set Onboarding as the home screen
+      // Start with Onboarding
       home: const OnboardingScreen(),
+
+      // Define routes for easier navigation
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/relationship': (context) => const RelationshipScreen(),
+      },
     );
   }
 }
