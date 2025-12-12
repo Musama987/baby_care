@@ -1,3 +1,4 @@
+import 'package:baby_care/screens/navbar/home/widgets/log_diaper.dart';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -213,6 +214,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   icon: Icons.layers_outlined,
                   color: const Color(0xFFA1887F),
                   iconBgColor: const Color(0xFFA1887F),
+                  onTap: () {
+                    PersistentNavBarNavigator.pushNewScreen(
+                      context,
+                      screen: const LogDiaperScreen(),
+                      withNavBar: false,
+                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                    );
+                  },
                 ),
                 _buildActionCard(
                   title: "Growth",
