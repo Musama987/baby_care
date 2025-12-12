@@ -223,11 +223,15 @@ class _BabySetupScreenState extends State<BabySetupScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // TODO: Save Data and Navigate to Home
-                        print("Name: ${_nameController.text}");
-                        print("DOB: ${_dobController.text}");
-                        print("Gender: $_selectedGender");
-                        print("Image Path: ${_selectedImage?.path}");
+                        // TODO: Save Data (In a real app, save to backend/storage here)
+
+                        // Navigate to Home Screen using the named route or direct push
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/home',
+                          (route) =>
+                              false, // Removes all previous routes from stack (cant go back to setup)
+                        );
                       }
                     },
                     child: const Text("All Set!"),

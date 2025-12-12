@@ -2,6 +2,7 @@ import 'package:baby_care/screens/auth/login/login.dart';
 import 'package:baby_care/screens/auth/signup/signup.dart';
 import 'package:baby_care/screens/baby_relationship/baby_setup.dart';
 import 'package:baby_care/screens/baby_relationship/realtionship.dart';
+import 'package:baby_care/screens/navbar/navbar.dart';
 import 'package:baby_care/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'utils/app_themes.dart';
@@ -31,7 +32,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/relationship': (context) => const RelationshipScreen(),
-        '/baby-setup': (context) => const BabySetupScreen(), // New Route
+        '/baby-setup': (context) => const BabySetupScreen(),
+        '/home': (context) => const NavbarScreen(), // Updated Route
       },
     );
   }
