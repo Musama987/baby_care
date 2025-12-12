@@ -1,6 +1,9 @@
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
+
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 // HomeScreen wrapper removed. Navbar logic moved to lib/screens/navbar/navbar.dart.
 
@@ -182,6 +185,15 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   icon: Icons.water_drop_rounded,
                   color: AppColors.primary,
                   iconBgColor: AppColors.primary,
+                  onTap: () {
+                    PersistentNavBarNavigator.pushNewScreen(
+                      context,
+                      screen: const LogFeedScreen(),
+                      withNavBar: true,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
+                    );
+                  },
                 ),
                 _buildActionCard(
                   title: "Log Sleep",
@@ -264,52 +276,56 @@ class _HomeDashboardState extends State<HomeDashboard> {
     required IconData icon,
     required Color color,
     required Color iconBgColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
           color: Colors.white,
-          width: 2,
-        ), // Subtle white border
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06), // Improved shadow
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconBgColor.withOpacity(0.85),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: iconBgColor.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white,
+            width: 2,
+          ), // Subtle white border
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06), // Improved shadow
+              blurRadius: 10,
+              spreadRadius: 0,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E2623),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconBgColor.withOpacity(0.85),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: iconBgColor.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1E2623),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

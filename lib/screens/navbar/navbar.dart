@@ -14,11 +14,12 @@ class _NavbarScreenState extends State<NavbarScreen> {
   int _selectedIndex = 0;
 
   // Placeholder pages for other tabs
+  // Placeholder pages for other tabs
   final List<Widget> _pages = [
-    const HomeDashboard(),
-    const Center(child: Text("Insights Screen")),
-    const Center(child: Text("Community Screen")),
-    const Center(child: Text("Profile Screen")),
+    const _TabNavigator(child: HomeDashboard()),
+    const _TabNavigator(child: Center(child: Text("Insights Screen"))),
+    const _TabNavigator(child: Center(child: Text("Community Screen"))),
+    const _TabNavigator(child: Center(child: Text("Profile Screen"))),
   ];
 
   @override
@@ -113,6 +114,20 @@ class _NavbarScreenState extends State<NavbarScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TabNavigator extends StatelessWidget {
+  final Widget child;
+  const _TabNavigator({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(builder: (context) => child);
+      },
     );
   }
 }
