@@ -2,7 +2,7 @@ import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
-
+import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 // HomeScreen wrapper removed. Navbar logic moved to lib/screens/navbar/navbar.dart.
@@ -189,9 +189,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     PersistentNavBarNavigator.pushNewScreen(
                       context,
                       screen: const LogFeedScreen(),
-                      withNavBar: true,
-                      pageTransitionAnimation:
-                          PageTransitionAnimation.cupertino,
+                      withNavBar: false,
+                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
                     );
                   },
                 ),
@@ -200,6 +199,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   icon: Icons.nightlight_round,
                   color: const Color(0xFF5C6BC0),
                   iconBgColor: const Color(0xFF5C6BC0),
+                  onTap: () {
+                    PersistentNavBarNavigator.pushNewScreen(
+                      context,
+                      screen: const LogSleepScreen(),
+                      withNavBar: false,
+                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                    );
+                  },
                 ),
                 _buildActionCard(
                   title: "Log Diaper",
