@@ -26,17 +26,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 "Profile",
                 style: GoogleFonts.poppins(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E2623),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               // --- User Avatar ---
               Container(
-                height: 110,
-                width: 110,
+                height: 90,
+                width: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.grey.shade200,
@@ -44,24 +44,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     image: AssetImage('assets/images/men.png'),
                     fit: BoxFit.cover,
                   ),
+                  border: Border.all(color: Colors.grey.shade100),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // --- User Name ---
               Text(
                 "Sarah M.",
                 style: GoogleFonts.poppins(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E2623),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               // --- Baby Details Card (Leo) ---
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white, // Pure White
                   borderRadius: BorderRadius.circular(24),
@@ -142,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // --- Menu Items (Now matching Leo Card Style) ---
               _buildMenuItem(
@@ -150,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 text: "Care Team",
                 onTap: () {},
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               _buildMenuItem(
                 icon: Icons.nightlight_outlined,
@@ -163,21 +164,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               _buildMenuItem(
                 icon: Icons.notifications_none_rounded,
                 text: "Notifications",
                 onTap: () {},
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               _buildMenuItem(
                 icon: Icons.share_outlined,
                 text: "Export Data",
                 onTap: () {},
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               _buildMenuItem(
                 icon: Icons.straighten_outlined,
@@ -185,12 +186,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {},
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
 
               // --- Log Out Button ---
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 60,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
@@ -255,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: isSwitch ? null : onTap,
           borderRadius: BorderRadius.circular(24),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
                 Icon(
