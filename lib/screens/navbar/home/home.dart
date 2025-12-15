@@ -192,7 +192,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       context,
                       screen: const LogFeedScreen(),
                       withNavBar: false,
-                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
                     );
                   },
                 ),
@@ -206,7 +207,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       context,
                       screen: const LogSleepScreen(),
                       withNavBar: false,
-                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
                     );
                   },
                 ),
@@ -220,7 +222,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       context,
                       screen: const LogDiaperScreen(),
                       withNavBar: false,
-                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
                     );
                   },
                 ),
@@ -234,7 +237,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       context,
                       screen: const GrowthScreen(),
                       withNavBar: false,
-                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
                     );
                   },
                 ),

@@ -31,12 +31,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: const Color(0xFF1E2623),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               // --- User Avatar ---
               Container(
-                height: 90,
-                width: 90,
+                height: 80,
+                width: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.grey.shade200,
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: Border.all(color: Colors.grey.shade100),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // --- User Name ---
               Text(
@@ -58,11 +58,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: const Color(0xFF1E2623),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // --- Baby Details Card (Leo) ---
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white, // Pure White
                   borderRadius: BorderRadius.circular(24),
@@ -143,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // --- Menu Items (Now matching Leo Card Style) ---
               _buildMenuItem(
@@ -186,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {},
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 35),
 
               // --- Log Out Button ---
               SizedBox(
@@ -219,7 +222,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -256,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: isSwitch ? null : onTap,
           borderRadius: BorderRadius.circular(24),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               children: [
                 Icon(
