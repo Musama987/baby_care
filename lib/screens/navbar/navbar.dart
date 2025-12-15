@@ -1,4 +1,4 @@
-import 'package:baby_care/screens/navbar/home/profile/profile.dart';
+import 'package:baby_care/screens/navbar/profile/profile.dart';
 import 'package:baby_care/screens/navbar/insights/insights.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
