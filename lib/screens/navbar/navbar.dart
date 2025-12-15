@@ -1,3 +1,4 @@
+import 'package:baby_care/screens/navbar/insights/insights.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_colors.dart';
@@ -17,7 +18,7 @@ class _NavbarScreenState extends State<NavbarScreen> {
   // Placeholder pages for other tabs
   final List<Widget> _pages = [
     const _TabNavigator(child: HomeDashboard()),
-    const _TabNavigator(child: Center(child: Text("Insights Screen"))),
+    const _TabNavigator(child: InsightsScreen()),
     const _TabNavigator(child: Center(child: Text("Community Screen"))),
     const _TabNavigator(child: Center(child: Text("Profile Screen"))),
   ];

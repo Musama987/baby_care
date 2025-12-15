@@ -1,0 +1,192 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../utils/app_colors.dart';
+
+class InsightsScreen extends StatelessWidget {
+  const InsightsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDFDFD), // Matches your app background
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Header Section ---
+              // "BabyCare 360" text removed as requested
+              const SizedBox(height: 10),
+              Text(
+                "Health Hub",
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E2623),
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // --- Growth Card ---
+              _buildHealthCard(
+                context,
+                title: "Growth",
+                subtitle: "Recent: 14.5 lbs (+0.5)",
+                icon: Icons.show_chart_rounded,
+                buttonText: "View Charts",
+                onTap: () {
+                  // TODO: Navigate to Growth Charts
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // --- Vaccines Card ---
+              _buildHealthCard(
+                context,
+                title: "Vaccines",
+                subtitle: "Next vaccine due in 2 weeks (Rotavirus).",
+                icon: Icons.access_time_rounded,
+                buttonText: "View Schedule",
+                onTap: () {
+                  // TODO: Navigate to Vaccine Schedule
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // --- Meds Card ---
+              _buildHealthCard(
+                context,
+                title: "Meds",
+                subtitle: "No active medications.",
+                icon: Icons.medication_outlined,
+                buttonText: "Add Med",
+                onTap: () {
+                  // TODO: Navigate to Add Meds
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // --- Appointments Card (New) ---
+              _buildHealthCard(
+                context,
+                title: "Appointments",
+                subtitle: "Pediatrician check-up in 3 days.",
+                icon: Icons.calendar_month_rounded,
+                buttonText: "View Appointments",
+                onTap: () {
+                  // TODO: Navigate to Appointments
+                },
+              ),
+
+              // Extra space for bottom nav bar
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHealthCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required String buttonText,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon Container
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(color: Colors.transparent),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: const Color(0xFF1E2623), // Dark icon color
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Text Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E2623),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF5A5A5A),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Action Button
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              child: Text(
+                buttonText,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
