@@ -65,7 +65,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
                       children: [
                         _buildTabButton(0, "Weight"),
                         _buildTabButton(1, "Height"),
-                        _buildTabButton(2, "Head"),
+                        // _buildTabButton(2, "Head"),
                       ],
                     ),
                   ),

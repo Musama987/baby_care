@@ -1,4 +1,5 @@
 import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/vaccines.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -57,7 +58,12 @@ class InsightsScreen extends StatelessWidget {
                 icon: Icons.access_time_rounded,
                 buttonText: "View Schedule",
                 onTap: () {
-                  // TODO: Navigate to Vaccine Schedule
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const VaccinesScreen(), // Add import
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
                 },
               ),
               const SizedBox(height: 24),
