@@ -11,8 +11,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isDarkMode = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,48 +146,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
 
-              // --- Menu Items (Now matching Leo Card Style) ---
               _buildMenuItem(
-                icon: Icons.person_outline_rounded,
-                text: "Care Team",
+                icon: Icons.settings_outlined,
+                text: "Settings",
                 onTap: () {},
               ),
               const SizedBox(height: 8),
 
               _buildMenuItem(
-                icon: Icons.nightlight_outlined,
-                text: "Dark Mode",
-                isSwitch: true,
-                switchValue: _isDarkMode,
-                onSwitchChanged: (value) {
-                  setState(() {
-                    _isDarkMode = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-
-              _buildMenuItem(
-                icon: Icons.notifications_none_rounded,
-                text: "Notifications",
+                icon: Icons.access_time_rounded,
+                text: "Reminders",
                 onTap: () {},
               ),
               const SizedBox(height: 8),
 
               _buildMenuItem(
-                icon: Icons.share_outlined,
-                text: "Export Data",
+                icon: Icons.privacy_tip_outlined,
+                text: "Privacy Policy",
                 onTap: () {},
               ),
               const SizedBox(height: 8),
 
               _buildMenuItem(
-                icon: Icons.straighten_outlined,
-                text: "Units",
+                icon: Icons.help_outline_rounded,
+                text: "FAQ",
+                onTap: () {},
+              ),
+              const SizedBox(height: 8),
+
+              _buildMenuItem(
+                icon: Icons.info_outline_rounded,
+                text: "About Us",
                 onTap: () {},
               ),
 
-              const SizedBox(height: 35),
+              const SizedBox(height: 20),
 
               // --- Log Out Button ---
               SizedBox(
@@ -240,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, // UPDATED: Pure White like Leo card
-        borderRadius: BorderRadius.circular(24), // Stadium/Pill shape
+        borderRadius: BorderRadius.circular(18), // Stadium/Pill shape
         // UPDATED: Same border as Leo card
         border: Border.all(color: Colors.grey.shade100),
         // UPDATED: Same shadow as Leo card
@@ -256,9 +247,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: isSwitch ? null : onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
                 Icon(
