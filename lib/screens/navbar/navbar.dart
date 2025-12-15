@@ -1,3 +1,4 @@
+import 'package:baby_care/screens/navbar/community/community.dart';
 import 'package:baby_care/screens/navbar/profile/profile.dart';
 import 'package:baby_care/screens/navbar/insights/insights.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class _NavbarScreenState extends State<NavbarScreen> {
   final List<Widget> _pages = [
     const _TabNavigator(child: HomeDashboard()),
     const _TabNavigator(child: InsightsScreen()),
-    const _TabNavigator(child: Center(child: Text("Community Screen"))),
+    const _TabNavigator(child: CommunityScreen()),
     const _TabNavigator(child: ProfileScreen()),
   ];
 
