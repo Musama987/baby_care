@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,9 +16,9 @@ class _GrowthScreenState extends State<GrowthScreen> {
   int _selectedTab = 0;
 
   // Mock Data for the chart visualization
-  final List<double> _weightData = [7.5, 9.2, 11.0, 12.5, 14.2, 16.0];
-  final List<double> _heightData = [50, 54, 58, 61, 64, 66];
-  final List<double> _headData = [35, 37, 39, 41, 42, 43];
+  final List<double> _weightData = [10.0, 25.0, 40.0, 60.0, 80.0, 95.0];
+  final List<double> _heightData = [50.0, 60.0, 70.0, 80.0, 90.0, 98.0];
+  final List<double> _headData = [35.0, 45.0, 55.0, 65.0, 75.0, 85.0];
 
   @override
   Widget build(BuildContext context) {
@@ -206,13 +207,19 @@ class _GrowthScreenState extends State<GrowthScreen> {
     );
   }
 
-  void _showAddMeasurementModal() {
-    showModalBottomSheet(
+  void _showAddMeasurementModal() async {
+    final double? newValue = await showModalBottomSheet<double>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddMeasurementSheet(),
     );
+
+    if (newValue != null) {
+      setState(() {
+        _getCurrentData().add(newValue);
+      });
+    }
   }
 }
 
@@ -386,7 +393,14 @@ class _AddMeasurementSheetState extends State<AddMeasurementSheet> {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                if (_valueController.text.isNotEmpty) {
+                  Navigator.pop(
+                    context,
+                    double.tryParse(_valueController.text),
+                  );
+                } else {
+                  Navigator.pop(context);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -423,6 +437,7 @@ class ChartPainter extends CustomPainter {
   });
 
   @override
+  @override
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
@@ -442,79 +457,151 @@ class ChartPainter extends CustomPainter {
 
     final double width = size.width;
     final double height = size.height;
-    final double padding = 20.0;
+    // Increased padding effectively to show labels
+    final double padding = 40.0;
 
-    // Draw Grid Lines
-    for (int i = 0; i <= 5; i++) {
-      double y = height - padding - (i * (height - 2 * padding) / 5);
-      canvas.drawLine(Offset(0, y), Offset(width, y), gridPaint);
+    // Fixed Scales as requested
+    const double minX = 0.0;
+    const double maxX = 100.0;
+    const double minY = 0.0; // Y Scale 0-100
+    const double maxY = 100.0;
+
+    final double xRange = maxX - minX;
+    final double yRange = maxY - minY;
+
+    final textStyle = GoogleFonts.poppins(
+      color: Colors.grey.shade600,
+      fontSize: 10,
+    );
+
+    // Draw Grid Lines & Labels
+    const int gridSteps = 5;
+
+    // Y-Axis Grid & Labels
+    for (int i = 0; i <= gridSteps; i++) {
+      double normalizedY = i / gridSteps;
+      double y = height - padding - (normalizedY * (height - 2 * padding));
+
+      // Draw horizontal grid line
+      canvas.drawLine(
+        Offset(padding, y),
+        Offset(width - padding, y),
+        gridPaint,
+      );
+
+      // Draw Y-Axis Label
+      double labelValue = minY + (normalizedY * yRange);
+      final textSpan = TextSpan(
+        text: labelValue.toStringAsFixed(0),
+        style: textStyle,
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: ui.TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      // Position text to the left of the chart area
+      textPainter.paint(
+        canvas,
+        Offset(padding - textPainter.width - 8, y - textPainter.height / 2),
+      );
     }
 
-    final double xStep = (width - 2 * padding) / (data.length - 1);
-    final double maxY =
-        data.reduce((curr, next) => curr > next ? curr : next) * 1.2;
-    final double minY =
-        data.reduce((curr, next) => curr < next ? curr : next) * 0.8;
+    // X-Axis Grid & Labels
+    for (int i = 0; i <= gridSteps; i++) {
+      double normalizedX = i / gridSteps;
+      double x = padding + (normalizedX * (width - 2 * padding));
 
+      // Optional: Draw vertical grid line
+      canvas.drawLine(
+        Offset(x, padding),
+        Offset(x, height - padding),
+        gridPaint,
+      );
+
+      // Draw X-Axis Label
+      double labelValue = minX + (normalizedX * xRange);
+      final textSpan = TextSpan(
+        text: labelValue.toStringAsFixed(0),
+        style: textStyle,
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: ui.TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      // Position text below the chart area
+      textPainter.paint(
+        canvas,
+        Offset(x - textPainter.width / 2, height - padding + 8),
+      );
+    }
+
+    // --- Plotting Logic (Smooth Curve + Full Width) ---
     final Path path = Path();
-    final Path fillPath = Path();
+    final Path fillPath = Path(); // For the area under the curve
 
-    fillPath.moveTo(padding, height - padding);
+    // If we only have one point, just draw a dot.
+    if (data.length == 1) {
+      // ... (Handle single point if needed, for now standard circle logic)
+    }
 
-    for (int i = 0; i < data.length; i++) {
-      double x = padding + i * xStep;
+    // Helper to map data index[i] to X coordinate and value[i] to Y coordinate
+    // We spread the points evenly from minX(pixels) to maxX(pixels).
+    Offset getPoint(int index) {
+      // Prevent division by zero if only 1 point
+      double t = index / (data.length > 1 ? (data.length - 1) : 1);
+      // Calculate X pixel position based on available width
+      double x = padding + t * (width - 2 * padding);
+
+      // Calculate Y pixel position based on value and 0-100 scale
+      double value = data[index].clamp(minY, maxY);
       double y =
-          height -
-          padding -
-          ((data[i] - minY) / (maxY - minY)) * (height - 2 * padding);
+          height - padding - ((value - minY) / yRange) * (height - 2 * padding);
+      return Offset(x, y);
+    }
 
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        // Draw smooth bezier curve
-        double prevX = padding + (i - 1) * xStep;
-        double prevY =
-            height -
-            padding -
-            ((data[i - 1] - minY) / (maxY - minY)) * (height - 2 * padding);
-        double cp1x = prevX + xStep / 2;
-        double cp1y = prevY;
-        double cp2x = x - xStep / 2;
-        double cp2y = y;
+    Offset startPoint = getPoint(0);
+    path.moveTo(startPoint.dx, startPoint.dy);
+    fillPath.moveTo(padding, height - padding); // Start bottom-left of chart
+    fillPath.lineTo(startPoint.dx, startPoint.dy);
 
-        path.cubicTo(cp1x, cp1y, cp2x, cp2y, x, y);
-      }
+    // Use Cubic Beziers for smoothing
+    // We can use a simplified approach: control points based on neighbors
+    for (int i = 0; i < data.length - 1; i++) {
+      Offset p0 = getPoint(i);
+      Offset p1 = getPoint(i + 1);
 
-      // Draw Dot
-      canvas.drawCircle(Offset(x, y), 5, Paint()..color = lineColor);
-      canvas.drawCircle(Offset(x, y), 3, Paint()..color = Colors.white);
+      // Calculate control points for curvature
+      // Simple monotonic smoothing
+      double controlX = (p0.dx + p1.dx) / 2;
+
+      Offset cp1 = Offset(controlX, p0.dy);
+      Offset cp2 = Offset(controlX, p1.dy);
+
+      path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p1.dx, p1.dy);
+      fillPath.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p1.dx, p1.dy);
     }
 
     // Finish fill path
-    // Reconstruct path for fill to ensure it closes at bottom
-    fillPath.moveTo(padding, height - padding);
-    for (int i = 0; i < data.length; i++) {
-      double x = padding + i * xStep;
-      double y =
-          height -
-          padding -
-          ((data[i] - minY) / (maxY - minY)) * (height - 2 * padding);
-      if (i == 0) {
-        fillPath.lineTo(x, y);
-      } else {
-        double prevX = padding + (i - 1) * xStep;
-        double prevY =
-            height -
-            padding -
-            ((data[i - 1] - minY) / (maxY - minY)) * (height - 2 * padding);
-        fillPath.cubicTo(prevX + xStep / 2, prevY, x - xStep / 2, y, x, y);
-      }
-    }
-    fillPath.lineTo(width - padding, height - padding);
-    fillPath.close();
+    Offset lastPoint = getPoint(data.length - 1);
+    fillPath.lineTo(
+      lastPoint.dx,
+      height - padding,
+    ); // Down to bottom-right axis
+    fillPath.close(); // Back to bottom-left
 
     canvas.drawPath(fillPath, fillPaint);
     canvas.drawPath(path, linePaint);
+
+    // Draw Dots on top
+    for (int i = 0; i < data.length; i++) {
+      Offset p = getPoint(i);
+      canvas.drawCircle(p, 5, Paint()..color = lineColor);
+      canvas.drawCircle(p, 3, Paint()..color = Colors.white);
+    }
   }
 
   @override
