@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 // HomeScreen wrapper removed. Navbar logic moved to lib/screens/navbar/navbar.dart.
@@ -228,6 +229,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   icon: Icons.monitor_weight_outlined,
                   color: const Color(0xFFE57373),
                   iconBgColor: const Color(0xFFE57373),
+                  onTap: () {
+                    PersistentNavBarNavigator.pushNewScreen(
+                      context,
+                      screen: const GrowthScreen(),
+                      withNavBar: false,
+                      pageTransitionAnimation: PageTransitionAnimation.sizeUp,
+                    );
+                  },
                 ),
               ],
             ),
