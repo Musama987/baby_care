@@ -1,5 +1,7 @@
+import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import '../../../utils/app_colors.dart';
 
 class InsightsScreen extends StatelessWidget {
@@ -36,7 +38,13 @@ class InsightsScreen extends StatelessWidget {
                 icon: Icons.show_chart_rounded,
                 buttonText: "View Charts",
                 onTap: () {
-                  // TODO: Navigate to Growth Charts
+                  // Navigate using PersistentNavBar to keep bottom bar hidden or handled correctly
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const GrowthScreen(),
+                    withNavBar: false, // Hide nav bar on growth screen
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
                 },
               ),
               const SizedBox(height: 24),
