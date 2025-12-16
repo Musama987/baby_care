@@ -216,7 +216,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   title: "Log Diaper",
                   iconPath: "assets/icons/poop.png",
                   color: const Color(0xFFA1887F),
-                  iconBgColor: const Color(0xFFA1887F),
+                  iconBgColor: const Color.fromARGB(255, 207, 103, 66),
                   onTap: () {
                     PersistentNavBarNavigator.pushNewScreen(
                       context,
@@ -329,8 +329,20 @@ class _HomeDashboardState extends State<HomeDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(iconPath, height: 50, width: 50, fit: BoxFit.contain),
-            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: iconBgColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                iconPath,
+                height: 60,
+                width: 60,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 5),
             Text(
               title,
               style: GoogleFonts.poppins(
