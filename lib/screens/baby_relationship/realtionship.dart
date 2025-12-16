@@ -15,10 +15,10 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
   int _selectedIndex = -1;
 
   final List<Map<String, dynamic>> _roles = [
-    {'title': 'Mother', 'icon': Icons.face_3_outlined},
-    {'title': 'Father', 'icon': Icons.face_6_outlined},
-    {'title': 'Caretaker/Nanny', 'icon': Icons.child_care_outlined},
-    {'title': 'Relative', 'icon': Icons.favorite_border_rounded},
+    {'title': 'Mother', 'image': 'assets/icons/mother.png'},
+    {'title': 'Father', 'image': 'assets/icons/father.png'},
+    {'title': 'Caretaker/Nanny', 'image': 'assets/icons/tedybear.png'},
+    {'title': 'Relative', 'image': 'assets/icons/heart.png'},
   ];
 
   @override
@@ -73,7 +73,7 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
                     return _buildRoleCard(
                       index: index,
                       title: role['title'],
-                      icon: role['icon'],
+                      image: role['image'],
                       isSelected: isSelected,
                     );
                   },
@@ -125,7 +125,7 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
   Widget _buildRoleCard({
     required int index,
     required String title,
-    required IconData icon,
+    required String image,
     required bool isSelected,
   }) {
     return GestureDetector(
@@ -163,18 +163,15 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 60,
-              width: 60,
-              decoration: BoxDecoration(
+              height: 95,
+              width: 95,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.transparent,
+                color: Colors.transparent,
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: isSelected ? AppColors.primary : const Color(0xFF8B6B61),
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Image.asset(image, fit: BoxFit.contain),
               ),
             ),
             const SizedBox(height: 12),

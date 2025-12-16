@@ -180,11 +180,11 @@ class _HomeDashboardState extends State<HomeDashboard> {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.35,
+              childAspectRatio: 1.1,
               children: [
                 _buildActionCard(
                   title: "Log Feed",
-                  icon: Icons.water_drop_rounded,
+                  iconPath: "assets/icons/feed.png",
                   color: AppColors.primary,
                   iconBgColor: AppColors.primary,
                   onTap: () {
@@ -199,7 +199,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
                 _buildActionCard(
                   title: "Log Sleep",
-                  icon: Icons.nightlight_round,
+                  iconPath: "assets/icons/moon.png",
                   color: const Color(0xFF5C6BC0),
                   iconBgColor: const Color(0xFF5C6BC0),
                   onTap: () {
@@ -214,7 +214,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
                 _buildActionCard(
                   title: "Log Diaper",
-                  icon: Icons.layers_outlined,
+                  iconPath: "assets/icons/poop.png",
                   color: const Color(0xFFA1887F),
                   iconBgColor: const Color(0xFFA1887F),
                   onTap: () {
@@ -229,7 +229,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
                 _buildActionCard(
                   title: "Growth",
-                  icon: Icons.monitor_weight_outlined,
+                  iconPath: "assets/icons/growth.png",
                   color: const Color(0xFFE57373),
                   iconBgColor: const Color(0xFFE57373),
                   onTap: () {
@@ -302,7 +302,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
   Widget _buildActionCard({
     required String title,
-    required IconData icon,
+    required String iconPath,
     required Color color,
     required Color iconBgColor,
     VoidCallback? onTap,
@@ -329,21 +329,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconBgColor.withOpacity(0.85),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: iconBgColor.withOpacity(0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: Colors.white, size: 22),
-            ),
+            Image.asset(iconPath, height: 50, width: 50, fit: BoxFit.contain),
             const SizedBox(height: 10),
             Text(
               title,
