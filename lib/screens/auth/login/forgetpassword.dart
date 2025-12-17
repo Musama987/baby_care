@@ -93,16 +93,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 setState(() {
                                   _isLoading = true;
                                 });
-
-                                await AuthService().sendPasswordResetEmail(
-                                  email: _emailController.text.trim(),
-                                  context: context,
-                                );
+                                final success = await AuthService()
+                                    .sendPasswordResetEmail(
+                                      email: _emailController.text.trim(),
+                                      context: context,
+                                    );
 
                                 if (mounted) {
                                   setState(() {
                                     _isLoading = false;
                                   });
+                                }
+
+                                if (success && mounted) {
+                                  Navigator.pop(context);
                                 }
                               }
                             },
