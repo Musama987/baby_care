@@ -1,3 +1,4 @@
+import 'package:baby_care/services/auth_service.dart';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -170,15 +171,36 @@ class _SignupScreenState extends State<SignupScreen> {
                                           _isLoading = true;
                                         });
 
-                                        await Future.delayed(
-                                          const Duration(seconds: 1),
+                                        // Call AuthService
+                                        final user = await AuthService().signUp(
+                                          email: _emailController.text.trim(),
+                                          password: _passwordController.text
+                                              .trim(),
+                                          name: _nameController.text.trim(),
+                                          context: context,
                                         );
 
                                         if (mounted) {
                                           setState(() {
                                             _isLoading = false;
                                           });
-                                          // TODO: Implement Registration Logic
+
+                                          if (user != null) {
+                                            // Navigate to Login Screen
+                                            Navigator.pushReplacementNamed(
+                                              context,
+                                              '/login',
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Account created! Please log in.',
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         }
                                       }
                                     },

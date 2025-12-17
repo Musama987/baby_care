@@ -1,3 +1,4 @@
+import 'package:baby_care/services/auth_service.dart';
 import 'package:baby_care/screens/auth/login/forgetpassword.dart';
 import 'package:baby_care/screens/auth/signup/signup.dart';
 import 'package:baby_care/screens/baby_relationship/realtionship.dart';
@@ -160,8 +161,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           _isLoading = true;
                                         });
 
-                                        await Future.delayed(
-                                          const Duration(seconds: 1),
+                                        // Call AuthService
+                                        final user = await AuthService().signIn(
+                                          email: _emailController.text.trim(),
+                                          password: _passwordController.text
+                                              .trim(),
+                                          context: context,
                                         );
 
                                         if (mounted) {
@@ -169,13 +174,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                             _isLoading = false;
                                           });
 
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const RelationshipScreen(),
-                                            ),
-                                          );
+                                          if (user != null) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const RelationshipScreen(),
+                                              ),
+                                            );
+                                          }
                                         }
                                       }
                                     },
@@ -214,7 +221,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               _buildSocialButton(
                                 icon: Icons.g_mobiledata,
-                                onTap: () {},
+                                onTap: () async {
+                                  setState(() => _isLoading = true);
+                                  // Call AuthService for Google Sign In
+                                  final user = await AuthService()
+                                      .signInWithGoogle(context);
+                                  setState(() => _isLoading = false);
+
+                                  if (user != null && mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const RelationshipScreen(),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                               const SizedBox(width: 20),
                               _buildSocialButton(

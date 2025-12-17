@@ -7,7 +7,12 @@ import 'package:baby_care/screens/onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'utils/app_themes.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:baby_care/firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
