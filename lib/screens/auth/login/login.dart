@@ -1,4 +1,5 @@
 import 'package:baby_care/services/auth_service.dart';
+import 'package:baby_care/services/database_service.dart';
 import 'package:baby_care/screens/auth/login/forgetpassword.dart';
 import 'package:baby_care/screens/auth/signup/signup.dart';
 import 'package:baby_care/screens/baby_relationship/realtionship.dart';
@@ -175,13 +176,37 @@ class _LoginScreenState extends State<LoginScreen> {
                                           });
 
                                           if (user != null) {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const RelationshipScreen(),
-                                              ),
-                                            );
+                                            // Check User Setup Status
+                                            final dbService = DatabaseService();
+                                            final userDoc = await dbService
+                                                .getUser(user.user!.uid);
+
+                                            if (mounted) {
+                                              if (userDoc != null &&
+                                                  userDoc.role != null &&
+                                                  userDoc.role!.isNotEmpty &&
+                                                  userDoc.currentBabyId !=
+                                                      null &&
+                                                  userDoc
+                                                      .currentBabyId!
+                                                      .isNotEmpty) {
+                                                // User has completed setup -> Go to Home
+                                                Navigator.pushNamedAndRemoveUntil(
+                                                  context,
+                                                  '/home',
+                                                  (route) => false,
+                                                );
+                                              } else {
+                                                // Setup not complete -> Go to Relationship
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const RelationshipScreen(),
+                                                  ),
+                                                );
+                                              }
+                                            }
                                           }
                                         }
                                       }
@@ -229,13 +254,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() => _isLoading = false);
 
                                   if (user != null && mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const RelationshipScreen(),
-                                      ),
+                                    // Check User Setup Status
+                                    final dbService = DatabaseService();
+                                    final userDoc = await dbService.getUser(
+                                      user.user!.uid,
                                     );
+
+                                    if (mounted) {
+                                      if (userDoc != null &&
+                                          userDoc.role != null &&
+                                          userDoc.role!.isNotEmpty &&
+                                          userDoc.currentBabyId != null &&
+                                          userDoc.currentBabyId!.isNotEmpty) {
+                                        // User has completed setup -> Go to Home
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          '/home',
+                                          (route) => false,
+                                        );
+                                      } else {
+                                        // Setup not complete -> Go to Relationship
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const RelationshipScreen(),
+                                          ),
+                                        );
+                                      }
+                                    }
                                   }
                                 },
                               ),

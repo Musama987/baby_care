@@ -2,6 +2,10 @@ import 'dart:io'; // Import for File handling
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart'; // Import Image Picker
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/database_service.dart';
+import '../../models/baby_model.dart';
 import '../../utils/app_colors.dart';
 
 class BabySetupScreen extends StatefulWidget {
@@ -221,22 +225,69 @@ class _BabySetupScreenState extends State<BabySetupScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // TODO: Save Data (In a real app, save to backend/storage here)
+                        try {
+                          final user = FirebaseAuth.instance.currentUser;
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("User not found. Please log in."),
+                              ),
+                            );
+                            return;
+                          }
 
-                        // Navigate to Home Screen using the named route or direct push
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/home',
-                          (route) =>
-                              false, // Removes all previous routes from stack (cant go back to setup)
-                        );
+                          // Generate a new Baby ID
+                          final babyId = FirebaseFirestore.instance
+                              .collection('babies')
+                              .doc()
+                              .id;
+
+                          // Parse DOB
+                          // Assuming format dd/MM/yyyy from _selectDate
+                          final parts = _dobController.text.split('/');
+                          final dob = DateTime(
+                            int.parse(parts[2]),
+                            int.parse(parts[1]),
+                            int.parse(parts[0]),
+                          );
+
+                          final baby = BabyModel(
+                            id: babyId,
+                            name: _nameController.text.trim(),
+                            dob: dob,
+                            gender: _selectedGender ?? 'Optional',
+                            parentId: user.uid,
+                            imageUrl: _selectedImage
+                                ?.path, // Store local path for now
+                          );
+
+                          await DatabaseService().createBaby(baby);
+
+                          if (context.mounted) {
+                            // Navigate directly to Home Screen using MaterialPageRoute for now
+                            // to ensure navigation even if route name isn't set up perfectly yet.
+                            // Or use pushNamedAndRemoveUntil as before if routes are defined.
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/home',
+                              (route) => false,
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error saving baby: $e")),
+                            );
+                          }
+                        }
                       }
                     },
                     child: const Text("All Set!"),
                   ),
                 ),
+
                 const SizedBox(height: 20),
               ],
             ),

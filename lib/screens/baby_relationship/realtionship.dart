@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/database_service.dart';
 import '../../utils/app_colors.dart';
 import 'baby_setup.dart'; // Import the new screen
 
@@ -86,14 +88,46 @@ class _RelationshipScreenState extends State<RelationshipScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _selectedIndex != -1
-                      ? () {
-                          // Navigate to Baby Setup Screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BabySetupScreen(),
-                            ),
-                          );
+                      ? () async {
+                          // Save Role to Firestore
+                          try {
+                            final userId =
+                                FirebaseAuth.instance.currentUser?.uid;
+                            if (userId != null) {
+                              final role = _roles[_selectedIndex]['title'];
+                              await DatabaseService().updateUserRole(
+                                userId,
+                                role,
+                              );
+
+                              if (context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const BabySetupScreen(),
+                                  ),
+                                );
+                              }
+                            } else {
+                              // Handle case where user is not logged in (shouldn't happen here normally)
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "User not found. Please login again.",
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Error saving role: $e"),
+                                ),
+                              );
+                            }
+                          }
                         }
                       : null, // Disable if nothing selected
                   style: ElevatedButton.styleFrom(
