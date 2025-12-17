@@ -9,15 +9,33 @@ import 'utils/app_themes.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:baby_care/firebase_options.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+
+  // Check Onboarding & Auth Status
+  final prefs = await SharedPreferences.getInstance();
+  final bool seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
+  final user = FirebaseAuth.instance.currentUser;
+
+  Widget initialScreen;
+  if (!seenOnboarding) {
+    initialScreen = const OnboardingScreen();
+  } else if (user != null) {
+    initialScreen = const NavbarScreen();
+  } else {
+    initialScreen = const LoginScreen();
+  }
+
+  runApp(MyApp(initialScreen: initialScreen));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget initialScreen;
+  const MyApp({super.key, required this.initialScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +47,8 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system, // Uses device system setting (Light/Dark)
-      // Start with Onboarding
-      home: const OnboardingScreen(),
+      // Start with determined screen
+      home: initialScreen,
 
       // Define routes for easier navigation
       routes: {

@@ -1,7 +1,8 @@
 import 'package:baby_care/screens/auth/login/login.dart';
 import 'package:flutter/material.dart';
-// import 'package:baby_care/utils/app_colors.dart'; // Uncomment if you use your file
+import 'package:baby_care/utils/app_colors.dart'; // Uncomment if you use your file
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -155,15 +156,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_currentPage == _onboardingData.length - 1) {
-                          // Navigate to Login Screen
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
+                          // Save seenOnboarding flag
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('seenOnboarding', true);
+
+                          if (context.mounted) {
+                            // Navigate to Login Screen
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          }
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 400),
