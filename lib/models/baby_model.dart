@@ -5,7 +5,7 @@ class BabyModel {
   final String name;
   final DateTime dob;
   final String gender; // Boy, Girl, Optional
-  final String? parentId; // The user who created this profile
+  final List<String> parentIds; // The users who have access to this profile
   final String? imageUrl; // Local path or URL
   final DateTime? createdAt;
 
@@ -14,7 +14,7 @@ class BabyModel {
     required this.name,
     required this.dob,
     required this.gender,
-    this.parentId,
+    required this.parentIds,
     this.imageUrl,
     this.createdAt,
   });
@@ -25,7 +25,7 @@ class BabyModel {
       'name': name,
       'dob': Timestamp.fromDate(dob),
       'gender': gender,
-      'parentId': parentId,
+      'parentIds': parentIds,
       'imageUrl': imageUrl,
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
     };
@@ -37,7 +37,7 @@ class BabyModel {
       name: map['name'] ?? '',
       dob: (map['dob'] as Timestamp).toDate(),
       gender: map['gender'] ?? 'Optional',
-      parentId: map['parentId'],
+      parentIds: List<String>.from(map['parentIds'] ?? []),
       imageUrl: map['imageUrl'],
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );

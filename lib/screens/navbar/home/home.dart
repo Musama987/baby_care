@@ -2,6 +2,7 @@ import 'package:baby_care/screens/navbar/home/widgets/log_diaper.dart';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
@@ -82,12 +83,13 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         final babies = babiesSnapshot.data ?? [];
 
                         // Determine selected value.
-                        // If babies exist but none selected (or ID mismatch), default to first.
                         String? effectiveBabyId = currentBabyId;
                         if (babies.isNotEmpty &&
                             (effectiveBabyId == null ||
                                 !babies.any((b) => b.id == effectiveBabyId))) {
                           effectiveBabyId = babies.first.id;
+                          // Optional: Auto-update user's selection if invalid
+                          // DatabaseService().updateUserCurrentBaby(user.uid, effectiveBabyId);
                         }
 
                         return Row(
@@ -188,57 +190,95 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
                 const SizedBox(height: 24),
 
-                // 2. Last Fed Card with Border
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F9F8), // Very light green/grey
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.grey.shade100),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1), // Softer shadow
-                        blurRadius: 15, // More blur
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Last Fed",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF1E2623),
+                // 2. Last Fed Card with Border - CONNECTED TO STREAM
+                if (currentBabyId != null)
+                  StreamBuilder(
+                    // Fetch LAST activity of type 'feed'.
+                    // Use a query that orders by timestamp desc limit 1.
+                    stream: DatabaseService().getLatestActivityStream(
+                      currentBabyId,
+                      'feed',
+                    ),
+                    builder: (context, snapshot) {
+                      DateTime? lastFedTime;
+
+                      if (snapshot.hasData && snapshot.data != null) {
+                        lastFedTime = snapshot.data!.timestamp;
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFFF7F9F8,
+                          ), // Very light green/grey
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.grey.shade100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
                             ),
-                          ),
-                          // Bottle Icon
-                          Icon(
-                            Icons.baby_changing_station,
-                            color: Colors.blue.shade300,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "2h 15m ago",
-                        style: GoogleFonts.poppins(
-                          fontSize: 36, // Larger text
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          letterSpacing: -1,
+                          ],
                         ),
-                      ),
-                    ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Last Fed",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF1E2623),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.baby_changing_station,
+                                  color: Colors.blue.shade300,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Use TimeAgoWidget for live updates
+                            if (lastFedTime != null)
+                              TimeAgoWidget(timestamp: lastFedTime)
+                            else if (snapshot.connectionState ==
+                                ConnectionState.waiting)
+                              Text(
+                                "Loading...",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade400,
+                                ),
+                              )
+                            else
+                              Text(
+                                "No data",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ),
+                if (currentBabyId == null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    child: const Text("Select a baby to see data"),
+                  ),
+
                 const SizedBox(height: 24),
 
                 // 3. Quick Actions Grid
@@ -314,53 +354,88 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 ),
                 const SizedBox(height: 24),
 
-                // 4. Today's Summary
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.grey.shade100),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Today's Summary",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E2623),
+                // 4. Today's Summary - CONNECTED TO STREAM
+                if (currentBabyId != null)
+                  StreamBuilder(
+                    stream: DatabaseService().getDailyLogsStream(
+                      currentBabyId,
+                      DateTime.now(),
+                    ),
+                    builder: (context, snapshot) {
+                      double sleepHours = 0;
+                      double milkOz = 0;
+                      // Placeholder max values for progress bars
+                      double maxSleep = 14;
+                      double maxMilk = 32;
+
+                      if (snapshot.hasData && snapshot.data != null) {
+                        final logs = snapshot.data!;
+                        for (var log in logs) {
+                          if (log.type == 'sleep') {
+                            final durationSec =
+                                log.details['duration'] as int? ?? 0;
+                            sleepHours += durationSec / 3600;
+                          } else if (log.type == 'feed' &&
+                              log.subType == 'bottle') {
+                            // Assuming 'amount' is stored in oz
+                            final amount = log.details['amount'];
+                            if (amount is int) milkOz += amount;
+                            if (amount is double) milkOz += amount;
+                            // Check if amount is string and parse if needed
+                            if (amount is String)
+                              milkOz += double.tryParse(amount) ?? 0;
+                          }
+                        }
+                      }
+
+                      return Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.grey.shade100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Today's Summary",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E2623),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
 
-                      // Sleep Progress
-                      _buildProgressBar(
-                        label: "Sleep",
-                        value: "10h 30m",
-                        progress: 0.7,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(height: 12),
+                            // Sleep Progress
+                            _buildProgressBar(
+                              label: "Sleep",
+                              value: "${sleepHours.toStringAsFixed(1)}h",
+                              progress: (sleepHours / maxSleep).clamp(0.0, 1.0),
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(height: 12),
 
-                      // Milk Progress
-                      _buildProgressBar(
-                        label: "Milk",
-                        value: "24oz",
-                        progress: 0.5,
-                        color: const Color(0xFFE57373),
-                      ),
-                    ],
+                            // Milk Progress
+                            _buildProgressBar(
+                              label: "Milk",
+                              value: "${milkOz.toStringAsFixed(1)}oz",
+                              progress: (milkOz / maxMilk).clamp(0.0, 1.0),
+                              color: const Color(0xFFE57373),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -469,6 +544,74 @@ class _HomeDashboardState extends State<HomeDashboard> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// --- TimeAgoWidget for Live Updates ---
+class TimeAgoWidget extends StatefulWidget {
+  final DateTime timestamp;
+
+  const TimeAgoWidget({super.key, required this.timestamp});
+
+  @override
+  State<TimeAgoWidget> createState() => _TimeAgoWidgetState();
+}
+
+class _TimeAgoWidgetState extends State<TimeAgoWidget>
+    with SingleTickerProviderStateMixin {
+  late final Ticker _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker((_) {
+      if (mounted) setState(() {});
+    });
+    _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final diff = now.difference(widget.timestamp);
+
+    String timeAgo;
+    if (diff.inMinutes < 60) {
+      timeAgo = "${diff.inMinutes} min ago";
+    } else if (diff.inHours < 24) {
+      final minutes = diff.inMinutes % 60;
+      if (minutes == 0) {
+        timeAgo = "${diff.inHours} hours ago";
+      } else {
+        timeAgo = "${diff.inHours} h ${minutes} min ago";
+      }
+    } else {
+      timeAgo = "${diff.inDays} days ago";
+    }
+
+    // Handle just added case (negative or zero)
+    if (diff.inSeconds < 60 && diff.inMinutes == 0) {
+      timeAgo = "Just now";
+    }
+
+    // User asked "if baby feed 3.30 pm ans now 3.39 so 9 minut update show"
+    // The "min" calculation above handles this.
+
+    return Text(
+      timeAgo,
+      style: GoogleFonts.poppins(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: AppColors.primary,
+        letterSpacing: -0.5,
+      ),
     );
   }
 }

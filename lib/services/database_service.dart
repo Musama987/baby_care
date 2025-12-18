@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/baby_model.dart';
+import '../models/activity_log_model.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -77,9 +78,10 @@ class DatabaseService {
       await _firestore.collection('babies').doc(baby.id).set(baby.toMap());
 
       // 2. Link Baby to User (Parent)
-      // Assuming the baby model already has parentId set.
-      if (baby.parentId != null) {
-        await updateUserCurrentBaby(baby.parentId!, baby.id);
+      // Since we now use parentIds list, we ensure the creator is in it.
+      if (baby.parentIds.isNotEmpty) {
+        // Update current baby for the FIRST parent (creator) usually
+        await updateUserCurrentBaby(baby.parentIds.first, baby.id);
       }
     } catch (e) {
       print("Error creating baby: $e");
@@ -100,14 +102,86 @@ class DatabaseService {
   }
 
   // Get All Babies for a User
-  Stream<List<BabyModel>> getUserBabiesStream(String parentId) {
+  Stream<List<BabyModel>> getUserBabiesStream(String uid) {
     return _firestore
         .collection('babies')
-        .where('parentId', isEqualTo: parentId)
+        .where(
+          Filter.or(
+            Filter('parentIds', arrayContains: uid),
+            Filter('parentId', isEqualTo: uid),
+          ),
+        )
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
               .map((doc) => BabyModel.fromMap(doc.data()))
+              .toList();
+        });
+  }
+
+  // --- Activity Log Operations ---
+
+  // Add Activity Log
+  Future<void> addActivityLog(String babyId, ActivityLogModel log) async {
+    try {
+      await _firestore
+          .collection('babies')
+          .doc(babyId)
+          .collection('logs')
+          .doc(log.id)
+          .set(log.toMap());
+    } catch (e) {
+      print("Error adding log: $e");
+      rethrow;
+    }
+  }
+
+  // Get Latest Activity Stream (e.g., Last Feed)
+  Stream<ActivityLogModel?> getLatestActivityStream(
+    String babyId,
+    String type,
+  ) {
+    // Optimized: Fetch recent 20 logs ordered by time, then find first matching type in memory.
+    // This avoids requiring a composite index (type + timestamp) for every activity type.
+    return _firestore
+        .collection('babies')
+        .doc(babyId)
+        .collection('logs')
+        .orderBy('timestamp', descending: true)
+        .limit(20)
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.docs.isEmpty) return null;
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            if (data['type'] == type) {
+              return ActivityLogModel.fromMap(data);
+            }
+          }
+          return null;
+        });
+  }
+
+  // Get Logs for a specific day (for Daily Summary)
+  Stream<List<ActivityLogModel>> getDailyLogsStream(
+    String babyId,
+    DateTime date,
+  ) {
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+    return _firestore
+        .collection('babies')
+        .doc(babyId)
+        .collection('logs')
+        .where('timestamp', isGreaterThanOrEqualTo: startOfDay)
+        .where('timestamp', isLessThanOrEqualTo: endOfDay)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => ActivityLogModel.fromMap(doc.data()))
               .toList();
         });
   }

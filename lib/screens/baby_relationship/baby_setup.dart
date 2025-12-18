@@ -258,7 +258,7 @@ class _BabySetupScreenState extends State<BabySetupScreen> {
                             name: _nameController.text.trim(),
                             dob: dob,
                             gender: _selectedGender ?? 'Optional',
-                            parentId: user.uid,
+                            parentIds: [user.uid],
                             imageUrl: _selectedImage
                                 ?.path, // Store local path for now
                           );

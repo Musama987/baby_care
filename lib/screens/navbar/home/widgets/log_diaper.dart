@@ -2,7 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../utils/app_colors.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
+import '../../../../models/user_model.dart';
 
 class LogDiaperScreen extends StatefulWidget {
   const LogDiaperScreen({super.key});
@@ -23,6 +29,112 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
   // Image Picker State
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+
+  // --- Date State ---
+  DateTime _selectedDate = DateTime.now();
+
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(primary: AppColors.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  bool _isSaving = false;
+
+  Future<void> _saveLog() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc?.currentBabyId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("No baby selected!")));
+        }
+        setState(() => _isSaving = false);
+        return;
+      }
+      final babyId = userDoc!.currentBabyId!;
+
+      final String logId = const Uuid().v4();
+      final now = DateTime.now();
+      final timestamp = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        now.hour,
+        now.minute,
+        now.second,
+      );
+
+      final log = ActivityLogModel(
+        id: logId,
+        type: 'diaper',
+        subType: _selectedType == 0
+            ? 'wet'
+            : (_selectedType == 1 ? 'dirty' : 'mixed'),
+        timestamp: timestamp,
+        details: {
+          'stoolColorIndex': _selectedColorIndex,
+          'imagePath': _selectedImage?.path, // Saving local path for now
+        },
+      );
+
+      await DatabaseService().addActivityLog(babyId, log);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Diaper change logged successfully!",
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        // Do NOT pop here
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error saving log: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
 
   // Color Definitions for Stool
   final List<Color> _stoolColors = [
@@ -61,6 +173,41 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             children: [
+              // --- Date Picker ---
+              GestureDetector(
+                onTap: _pickDate,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        DateFormat('MMM dd, yyyy').format(_selectedDate),
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E2623),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               const SizedBox(height: 5),
               Text(
                 "Log Diaper",
@@ -191,10 +338,7 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement Save Logic (save _selectedType, _selectedColorIndex, _selectedImage)
-                    Navigator.pop(context);
-                  },
+                  onPressed: _saveLog,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -204,13 +348,22 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: Text(
-                    "Save Log",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          "Save Log",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),

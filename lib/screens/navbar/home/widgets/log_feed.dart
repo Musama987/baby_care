@@ -2,6 +2,12 @@ import 'dart:async';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
+import '../../../../models/user_model.dart';
 
 class LogFeedScreen extends StatefulWidget {
   const LogFeedScreen({super.key});
@@ -25,6 +31,158 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
   // --- Solids State ---
   final TextEditingController _foodController = TextEditingController();
   int _solidsAmount = 50; // grams
+
+  // --- Date State ---
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(primary: AppColors.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  bool _isSaving = false;
+
+  Future<void> _saveLog() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isSaving = true;
+      // Stop timers if running
+      _timer?.cancel();
+      if (_leftStopwatch.isRunning) _leftStopwatch.stop();
+      if (_rightStopwatch.isRunning) _rightStopwatch.stop();
+    });
+
+    try {
+      // Get current baby ID from User Profile
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc?.currentBabyId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("No baby selected!")));
+        }
+        setState(() => _isSaving = false);
+        return;
+      }
+      final babyId = userDoc!.currentBabyId!;
+
+      // Construct common data
+      final String logId = const Uuid().v4();
+      final now = DateTime.now();
+      final timestamp = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        now.hour,
+        now.minute,
+        now.second,
+      );
+
+      ActivityLogModel? log;
+
+      if (_selectedTab == 0) {
+        // Nursing
+        log = ActivityLogModel(
+          id: logId,
+          type: 'feed',
+          subType: 'nursing',
+          timestamp: timestamp,
+          details: {
+            'leftDuration': _leftStopwatch.elapsed.inSeconds,
+            'rightDuration': _rightStopwatch.elapsed.inSeconds,
+            'totalDuration':
+                _leftStopwatch.elapsed.inSeconds +
+                _rightStopwatch.elapsed.inSeconds,
+            'side': _leftStopwatch.elapsed > _rightStopwatch.elapsed
+                ? 'Left'
+                : 'Right', // Dominant side
+          },
+        );
+      } else if (_selectedTab == 1) {
+        // Bottle
+        log = ActivityLogModel(
+          id: logId,
+          type: 'feed',
+          subType: 'bottle',
+          timestamp: timestamp,
+          details: {
+            'amount': _bottleAmount,
+            'unit': 'oz',
+            'mood': _selectedMood,
+          },
+        );
+      } else {
+        // Solids
+        log = ActivityLogModel(
+          id: logId,
+          type: 'feed',
+          subType: 'solids',
+          timestamp: timestamp,
+          details: {
+            'food': _foodController.text,
+            'amount': _solidsAmount,
+            'unit': 'g',
+          },
+        );
+      }
+
+      await DatabaseService().addActivityLog(babyId, log);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Feed logged successfully!",
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        // Do NOT pop here
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error saving log: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -114,6 +272,55 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+
+            // --- Date Picker ---
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Date",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF1E2623),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          DateFormat('MMM dd, yyyy').format(_selectedDate),
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             const SizedBox(height: 40),
 
             // --- Content Views ---
@@ -126,10 +333,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement Save Logic based on _selectedTab
-                  Navigator.pop(context);
-                },
+                onPressed: _saveLog,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -139,13 +343,22 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child: Text(
-                  "Save Log",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        "Save Log",
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(
