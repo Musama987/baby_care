@@ -185,4 +185,20 @@ class DatabaseService {
               .toList();
         });
   }
+
+  // Get Growth Logs Stream (Ordered by Date Ascending for Charts)
+  Stream<List<ActivityLogModel>> getGrowthLogsStream(String babyId) {
+    return _firestore
+        .collection('babies')
+        .doc(babyId)
+        .collection('logs')
+        .orderBy('timestamp', descending: false) // Oldest first
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => ActivityLogModel.fromMap(doc.data()))
+              .where((log) => log.type == 'growth')
+              .toList();
+        });
+  }
 }

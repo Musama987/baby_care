@@ -20,10 +20,27 @@ class _GrowthScreenState extends State<GrowthScreen> {
   // 0: Weight, 1: Height, 2: Head
   int _selectedTab = 0;
 
-  // Mock Data for the chart visualization
-  final List<double> _weightData = [10.0, 25.0, 40.0, 60.0, 80.0, 95.0];
-  final List<double> _heightData = [50.0, 60.0, 70.0, 80.0, 90.0, 98.0];
-  final List<double> _headData = [35.0, 45.0, 55.0, 65.0, 75.0, 85.0];
+  Stream<List<ActivityLogModel>>? _growthStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupStream();
+  }
+
+  void _setupStream() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc?.currentBabyId != null) {
+        setState(() {
+          _growthStream = DatabaseService().getGrowthLogsStream(
+            userDoc!.currentBabyId!,
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,13 +121,56 @@ class _GrowthScreenState extends State<GrowthScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: CustomPaint(
-                      painter: ChartPainter(
-                        data: _getCurrentData(),
-                        lineColor: AppColors.primary,
-                        fillColor: AppColors.primary.withOpacity(0.2),
-                      ),
-                    ),
+                    child: _growthStream == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : StreamBuilder<List<ActivityLogModel>>(
+                            stream: _growthStream,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+
+                              List<double> chartData = [];
+                              if (snapshot.hasData) {
+                                final logs = snapshot.data!;
+                                // Filter based on selected tab
+                                final type = _selectedTab == 0
+                                    ? 'weight'
+                                    : (_selectedTab == 1 ? 'height' : 'head');
+
+                                chartData = logs
+                                    .where((log) => log.subType == type)
+                                    .map((log) {
+                                      final val = log.details['value'];
+                                      if (val is int) return val.toDouble();
+                                      return val as double;
+                                    })
+                                    .toList();
+                              }
+
+                              if (chartData.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    "No data yet",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return CustomPaint(
+                                painter: ChartPainter(
+                                  data: chartData,
+                                  lineColor: AppColors.primary,
+                                  fillColor: AppColors.primary.withOpacity(0.2),
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ),
               ),
@@ -162,16 +222,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
     }
   }
 
-  List<double> _getCurrentData() {
-    switch (_selectedTab) {
-      case 1:
-        return _heightData;
-      case 2:
-        return _headData;
-      default:
-        return _weightData;
-    }
-  }
+  // Removed _getCurrentData as logic is moved to builder
 
   Widget _buildTabButton(int index, String label) {
     final bool isSelected = _selectedTab == index;
