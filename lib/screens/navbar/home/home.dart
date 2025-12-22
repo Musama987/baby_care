@@ -392,7 +392,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       onTap: () {
                         PersistentNavBarNavigator.pushNewScreen(
                           context,
-                          screen: const MedicationScreen(),
+                          screen: const Medication(),
                           withNavBar: false,
                           pageTransitionAnimation:
                               PageTransitionAnimation.cupertino,
