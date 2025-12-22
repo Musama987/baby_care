@@ -1,4 +1,9 @@
+import 'package:baby_care/screens/navbar/home/widgets/log_diaper.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/appointment.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/medication.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/vaccines.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,6 +36,60 @@ class InsightsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
+              // --- Log Feed Card ---
+              _buildHealthCard(
+                context,
+                title: "Log Feed",
+                subtitle: "Track breastfeeding, bottle, and solids.",
+                icon: Icons.baby_changing_station,
+                buttonText: "View Feed Log",
+                onTap: () {
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const LogFeedScreen(),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // --- Log Sleep Card ---
+              _buildHealthCard(
+                context,
+                title: "Log Sleep",
+                subtitle: "Monitor sleep patterns and duration.",
+                icon: Icons.nightlight_round,
+                buttonText: "View Sleep Log",
+                onTap: () {
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const LogSleepScreen(),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // --- Log Diaper Card ---
+              _buildHealthCard(
+                context,
+                title: "Log Diaper",
+                subtitle: "Track diaper changes and health indicators.",
+                icon: Icons.layers,
+                buttonText: "View Diaper Log",
+                onTap: () {
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const LogDiaperScreen(),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+
               // --- Growth Card ---
               _buildHealthCard(
                 context,
@@ -39,11 +98,10 @@ class InsightsScreen extends StatelessWidget {
                 icon: Icons.show_chart_rounded,
                 buttonText: "View Charts",
                 onTap: () {
-                  // Navigate using PersistentNavBar to keep bottom bar hidden or handled correctly
                   PersistentNavBarNavigator.pushNewScreen(
                     context,
                     screen: const GrowthScreen(),
-                    withNavBar: false, // Hide nav bar on growth screen
+                    withNavBar: false,
                     pageTransitionAnimation: PageTransitionAnimation.cupertino,
                   );
                 },
@@ -60,7 +118,7 @@ class InsightsScreen extends StatelessWidget {
                 onTap: () {
                   PersistentNavBarNavigator.pushNewScreen(
                     context,
-                    screen: const VaccinesScreen(), // Add import
+                    screen: const VaccinesScreen(),
                     withNavBar: false,
                     pageTransitionAnimation: PageTransitionAnimation.cupertino,
                   );
@@ -76,12 +134,17 @@ class InsightsScreen extends StatelessWidget {
                 icon: Icons.medication_outlined,
                 buttonText: "Add Med",
                 onTap: () {
-                  // TODO: Navigate to Add Meds
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const Medication(),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
                 },
               ),
               const SizedBox(height: 24),
 
-              // --- Appointments Card (New) ---
+              // --- Appointments Card ---
               _buildHealthCard(
                 context,
                 title: "Appointments",
@@ -89,7 +152,12 @@ class InsightsScreen extends StatelessWidget {
                 icon: Icons.calendar_month_rounded,
                 buttonText: "View Appointments",
                 onTap: () {
-                  // TODO: Navigate to Appointments
+                  PersistentNavBarNavigator.pushNewScreen(
+                    context,
+                    screen: const AppointmentScreen(),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
                 },
               ),
 
