@@ -263,7 +263,7 @@ class _BabySetupScreenState extends State<BabySetupScreen> {
                                 ?.path, // Store local path for now
                           );
 
-                          await DatabaseService().createBaby(baby);
+                          await DatabaseService().createBaby(user.uid, baby);
 
                           if (context.mounted) {
                             // Navigate directly to Home Screen using MaterialPageRoute for now

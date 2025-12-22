@@ -35,6 +35,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
       if (userDoc?.currentBabyId != null) {
         setState(() {
           _growthStream = DatabaseService().getGrowthLogsStream(
+            user.uid,
             userDoc!.currentBabyId!,
           );
         });
@@ -396,7 +397,7 @@ class _AddMeasurementSheetState extends State<AddMeasurementSheet> {
         details: {'value': value, 'unit': _selectedUnit},
       );
 
-      await DatabaseService().addActivityLog(babyId, log);
+      await DatabaseService().addActivityLog(user.uid, babyId, log);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

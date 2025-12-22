@@ -196,6 +196,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     // Fetch LAST activity of type 'feed'.
                     // Use a query that orders by timestamp desc limit 1.
                     stream: DatabaseService().getLatestActivityStream(
+                      user.uid,
                       currentBabyId,
                       'feed',
                     ),
@@ -358,6 +359,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 if (currentBabyId != null)
                   StreamBuilder(
                     stream: DatabaseService().getDailyLogsStream(
+                      user.uid,
                       currentBabyId,
                       DateTime.now(),
                     ),

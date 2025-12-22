@@ -99,7 +99,7 @@ class _LogSleepScreenState extends State<LogSleepScreen> {
         details: {'duration': _duration.inSeconds, 'soundUsed': _activeSound},
       );
 
-      await DatabaseService().addActivityLog(babyId, log);
+      await DatabaseService().addActivityLog(user.uid, babyId, log);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

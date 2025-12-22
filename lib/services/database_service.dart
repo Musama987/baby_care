@@ -72,17 +72,18 @@ class DatabaseService {
   // --- Baby Operations ---
 
   // Create Baby
-  Future<void> createBaby(BabyModel baby) async {
+  Future<void> createBaby(String uid, BabyModel baby) async {
     try {
-      // 1. Save Baby to 'babies' collection
-      await _firestore.collection('babies').doc(baby.id).set(baby.toMap());
+      // 1. Save Baby to 'users/{uid}/babies' subcollection
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('babies')
+          .doc(baby.id)
+          .set(baby.toMap());
 
-      // 2. Link Baby to User (Parent)
-      // Since we now use parentIds list, we ensure the creator is in it.
-      if (baby.parentIds.isNotEmpty) {
-        // Update current baby for the FIRST parent (creator) usually
-        await updateUserCurrentBaby(baby.parentIds.first, baby.id);
-      }
+      // 2. Link Baby to User (Parent) - simply update current baby
+      await updateUserCurrentBaby(uid, baby.id);
     } catch (e) {
       print("Error creating baby: $e");
       rethrow;
@@ -90,27 +91,27 @@ class DatabaseService {
   }
 
   // Get Baby Stream
-  Stream<BabyModel?> getBabyStream(String babyId) {
-    return _firestore.collection('babies').doc(babyId).snapshots().map((
-      snapshot,
-    ) {
-      if (snapshot.exists && snapshot.data() != null) {
-        return BabyModel.fromMap(snapshot.data()!);
-      }
-      return null;
-    });
+  Stream<BabyModel?> getBabyStream(String uid, String babyId) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('babies')
+        .doc(babyId)
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            return BabyModel.fromMap(snapshot.data()!);
+          }
+          return null;
+        });
   }
 
   // Get All Babies for a User
   Stream<List<BabyModel>> getUserBabiesStream(String uid) {
     return _firestore
+        .collection('users')
+        .doc(uid)
         .collection('babies')
-        .where(
-          Filter.or(
-            Filter('parentIds', arrayContains: uid),
-            Filter('parentId', isEqualTo: uid),
-          ),
-        )
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
@@ -122,9 +123,15 @@ class DatabaseService {
   // --- Activity Log Operations ---
 
   // Add Activity Log
-  Future<void> addActivityLog(String babyId, ActivityLogModel log) async {
+  Future<void> addActivityLog(
+    String uid,
+    String babyId,
+    ActivityLogModel log,
+  ) async {
     try {
       await _firestore
+          .collection('users')
+          .doc(uid)
           .collection('babies')
           .doc(babyId)
           .collection('logs')
@@ -138,12 +145,15 @@ class DatabaseService {
 
   // Get Latest Activity Stream (e.g., Last Feed)
   Stream<ActivityLogModel?> getLatestActivityStream(
+    String uid,
     String babyId,
     String type,
   ) {
     // Optimized: Fetch recent 20 logs ordered by time, then find first matching type in memory.
     // This avoids requiring a composite index (type + timestamp) for every activity type.
     return _firestore
+        .collection('users')
+        .doc(uid)
         .collection('babies')
         .doc(babyId)
         .collection('logs')
@@ -165,6 +175,7 @@ class DatabaseService {
 
   // Get Logs for a specific day (for Daily Summary)
   Stream<List<ActivityLogModel>> getDailyLogsStream(
+    String uid,
     String babyId,
     DateTime date,
   ) {
@@ -172,6 +183,8 @@ class DatabaseService {
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
     return _firestore
+        .collection('users')
+        .doc(uid)
         .collection('babies')
         .doc(babyId)
         .collection('logs')
@@ -187,8 +200,13 @@ class DatabaseService {
   }
 
   // Get Growth Logs Stream (Ordered by Date Ascending for Charts)
-  Stream<List<ActivityLogModel>> getGrowthLogsStream(String babyId) {
+  Stream<List<ActivityLogModel>> getGrowthLogsStream(
+    String uid,
+    String babyId,
+  ) {
     return _firestore
+        .collection('users')
+        .doc(uid)
         .collection('babies')
         .doc(babyId)
         .collection('logs')

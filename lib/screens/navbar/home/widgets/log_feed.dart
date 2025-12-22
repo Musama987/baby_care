@@ -150,7 +150,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
         );
       }
 
-      await DatabaseService().addActivityLog(babyId, log);
+      await DatabaseService().addActivityLog(user.uid, babyId, log);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
