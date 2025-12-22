@@ -6,6 +6,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/vaccines.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/appointment.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/medication.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/database_service.dart';
@@ -188,7 +191,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // 2. Last Fed Card with Border - CONNECTED TO STREAM
                 if (currentBabyId != null)
@@ -209,7 +212,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
                       return Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: const Color(
                             0xFFF7F9F8,
@@ -280,7 +283,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     child: const Text("Select a baby to see data"),
                   ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // 3. Quick Actions Grid
                 GridView.count(
@@ -289,7 +292,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.1,
+                  childAspectRatio: 1.4,
                   children: [
                     _buildActionCard(
                       title: "Log Feed",
@@ -351,9 +354,54 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         );
                       },
                     ),
+                    _buildActionCard(
+                      title: "Vaccines",
+                      icon: Icons.shield_outlined,
+                      color: Colors.teal,
+                      iconBgColor: Colors.teal,
+                      onTap: () {
+                        PersistentNavBarNavigator.pushNewScreen(
+                          context,
+                          screen: const VaccinesScreen(),
+                          withNavBar: false,
+                          pageTransitionAnimation:
+                              PageTransitionAnimation.cupertino,
+                        );
+                      },
+                    ),
+                    _buildActionCard(
+                      title: "Appointment",
+                      icon: Icons.calendar_month_rounded,
+                      color: Colors.purple,
+                      iconBgColor: Colors.purple,
+                      onTap: () {
+                        PersistentNavBarNavigator.pushNewScreen(
+                          context,
+                          screen: const AppointmentScreen(),
+                          withNavBar: false,
+                          pageTransitionAnimation:
+                              PageTransitionAnimation.cupertino,
+                        );
+                      },
+                    ),
+                    _buildActionCard(
+                      title: "Meds",
+                      icon: Icons.medication_outlined,
+                      color: Colors.orangeAccent,
+                      iconBgColor: Colors.orangeAccent,
+                      onTap: () {
+                        PersistentNavBarNavigator.pushNewScreen(
+                          context,
+                          screen: const MedicationScreen(),
+                          withNavBar: false,
+                          pageTransitionAnimation:
+                              PageTransitionAnimation.cupertino,
+                        );
+                      },
+                    ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // 4. Today's Summary - CONNECTED TO STREAM
                 if (currentBabyId != null)
@@ -391,7 +439,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       }
 
                       return Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -449,7 +497,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
 
   Widget _buildActionCard({
     required String title,
-    required String iconPath,
+    String? iconPath,
+    IconData? icon,
     required Color color,
     required Color iconBgColor,
     VoidCallback? onTap,
@@ -477,19 +526,21 @@ class _HomeDashboardState extends State<HomeDashboard> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: iconBgColor.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                iconPath,
-                height: 60,
-                width: 60,
-                fit: BoxFit.contain,
-              ),
+              child: icon != null
+                  ? Icon(icon, color: iconBgColor, size: 24)
+                  : Image.asset(
+                      iconPath!,
+                      height: 40,
+                      width: 40,
+                      fit: BoxFit.contain,
+                    ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 4),
             Text(
               title,
               style: GoogleFonts.poppins(
@@ -609,7 +660,7 @@ class _TimeAgoWidgetState extends State<TimeAgoWidget>
     return Text(
       timeAgo,
       style: GoogleFonts.poppins(
-        fontSize: 32,
+        fontSize: 26,
         fontWeight: FontWeight.bold,
         color: AppColors.primary,
         letterSpacing: -0.5,
