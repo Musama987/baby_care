@@ -96,6 +96,7 @@ class _LogSleepScreenState extends State<LogSleepScreen> {
         id: logId,
         type: 'sleep',
         timestamp: timestamp,
+        createdAt: DateTime.now(),
         details: {'duration': _duration.inSeconds, 'soundUsed': _activeSound},
       );
 

@@ -326,6 +326,7 @@ class _AddMedicationSheetState extends State<AddMedicationSheet> {
         id: logId,
         type: 'medication',
         timestamp: _selectedDate!,
+        createdAt: DateTime.now(),
         details: {
           'name': _nameController.text.trim(),
           'dosage': _doseController.text.trim(),

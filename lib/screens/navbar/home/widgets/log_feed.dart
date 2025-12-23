@@ -111,6 +111,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
           type: 'feed',
           subType: 'nursing',
           timestamp: timestamp,
+          createdAt: DateTime.now(),
           details: {
             'leftDuration': _leftStopwatch.elapsed.inSeconds,
             'rightDuration': _rightStopwatch.elapsed.inSeconds,
@@ -129,6 +130,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
           type: 'feed',
           subType: 'bottle',
           timestamp: timestamp,
+          createdAt: DateTime.now(),
           details: {
             'amount': _bottleAmount,
             'unit': 'oz',
@@ -142,6 +144,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
           type: 'feed',
           subType: 'solids',
           timestamp: timestamp,
+          createdAt: DateTime.now(),
           details: {
             'food': _foodController.text,
             'amount': _solidsAmount,

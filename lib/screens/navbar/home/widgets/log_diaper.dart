@@ -96,6 +96,7 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
             ? 'wet'
             : (_selectedType == 1 ? 'dirty' : 'mixed'),
         timestamp: timestamp,
+        createdAt: DateTime.now(),
         details: {
           'stoolColorIndex': _selectedColorIndex,
           'imagePath': _selectedImage?.path, // Saving local path for now

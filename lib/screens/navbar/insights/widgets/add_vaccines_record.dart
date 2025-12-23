@@ -103,6 +103,7 @@ class _AddVaccineRecordState extends State<AddVaccineRecord> {
           id: logId,
           type: 'vaccine',
           timestamp: timestamp,
+          createdAt: DateTime.now(),
           details: {
             'name': _vaccineNameController.text.trim(),
             'doctor': _doctorController.text.trim(),

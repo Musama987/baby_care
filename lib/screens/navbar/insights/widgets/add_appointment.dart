@@ -130,19 +130,13 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         final babyId = userDoc.currentBabyId!;
 
         final String logId = const Uuid().v4();
-        // Construct DateTime from date and time
-        final DateTime appointmentDateTime = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
+        // date and time are stored in details
 
         final log = ActivityLogModel(
           id: logId,
           type: 'appointment',
-          timestamp: appointmentDateTime,
+          timestamp: DateTime.now(),
+          createdAt: DateTime.now(),
           details: {
             'title': _titleController.text.trim(),
             'doctor': _doctorController.text.trim(),

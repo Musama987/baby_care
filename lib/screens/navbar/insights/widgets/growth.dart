@@ -394,6 +394,7 @@ class _AddMeasurementSheetState extends State<AddMeasurementSheet> {
         type: 'growth',
         subType: widget.subType,
         timestamp: timestamp,
+        createdAt: DateTime.now(),
         details: {'value': value, 'unit': _selectedUnit},
       );
 

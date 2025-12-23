@@ -6,6 +6,7 @@ class ActivityLogModel {
   final String? subType; // e.g. 'nursing', 'bottle', 'wet', 'dirty'
   final DateTime timestamp;
   final Map<String, dynamic> details;
+  final DateTime? createdAt;
 
   ActivityLogModel({
     required this.id,
@@ -13,6 +14,7 @@ class ActivityLogModel {
     this.subType,
     required this.timestamp,
     required this.details,
+    this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -21,6 +23,9 @@ class ActivityLogModel {
       'type': type,
       'subType': subType,
       'timestamp': Timestamp.fromDate(timestamp),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
       'details': details,
     };
   }
@@ -32,6 +37,9 @@ class ActivityLogModel {
       subType: map['subType'],
       timestamp: (map['timestamp'] as Timestamp).toDate(),
       details: Map<String, dynamic>.from(map['details'] ?? {}),
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] as Timestamp).toDate()
+          : null,
     );
   }
 }
