@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
+import '../../../../models/user_model.dart';
 
 class AddVaccineRecord extends StatefulWidget {
   const AddVaccineRecord({super.key});
@@ -21,6 +26,7 @@ class _AddVaccineRecordState extends State<AddVaccineRecord> {
 
   DateTime? _selectedDate;
   DateTime? _selectedNextDueDate;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -70,24 +76,74 @@ class _AddVaccineRecordState extends State<AddVaccineRecord> {
     }
   }
 
-  void _saveRecord() {
+  Future<void> _saveRecord() async {
     if (_formKey.currentState!.validate()) {
-      // Create a map or object here to pass back or save to database
-      final newRecord = {
-        'vaccineName': _vaccineNameController.text,
-        'date': _selectedDate,
-        'doctor': _doctorController.text,
-        'notes': _notesController.text,
-        'nextDueDate': _selectedNextDueDate,
-      };
+      setState(() {
+        _isSaving = true;
+      });
 
-      // TODO: Call your database service here to save 'newRecord'
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          throw Exception("User not logged in");
+        }
 
-      Navigator.pop(context, newRecord); // Return data to previous screen
+        // Get current baby ID
+        final userDoc = await DatabaseService().getUser(user.uid);
+        if (userDoc == null || userDoc.currentBabyId == null) {
+          throw Exception("No baby selected");
+        }
+        final babyId = userDoc.currentBabyId!;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vaccine record added successfully')),
-      );
+        final String logId = const Uuid().v4();
+        // Use selected date or current time if null
+        final DateTime timestamp = _selectedDate ?? DateTime.now();
+
+        final log = ActivityLogModel(
+          id: logId,
+          type: 'vaccine',
+          timestamp: timestamp,
+          details: {
+            'name': _vaccineNameController.text.trim(),
+            'doctor': _doctorController.text.trim(),
+            'notes': _notesController.text.trim(),
+            'nextDueDate': _selectedNextDueDate?.toIso8601String(),
+          },
+        );
+
+        await DatabaseService().addActivityLog(user.uid, babyId, log);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Vaccine record added successfully',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+          Navigator.pop(context, true); // Return success
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error saving record: $e',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+        }
+      }
     }
   }
 
@@ -190,7 +246,7 @@ class _AddVaccineRecordState extends State<AddVaccineRecord> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _saveRecord,
+                    onPressed: _isSaving ? null : _saveRecord,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
@@ -198,14 +254,23 @@ class _AddVaccineRecordState extends State<AddVaccineRecord> {
                       ),
                       elevation: 2,
                     ),
-                    child: Text(
-                      "Save Record",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            "Save Record",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
               ],

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:baby_care/utils/app_colors.dart';
 import 'package:baby_care/utils/app_themes.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
+import '../../../../models/user_model.dart';
 
 class Medication extends StatefulWidget {
   const Medication({Key? key}) : super(key: key);
@@ -11,7 +17,7 @@ class Medication extends StatefulWidget {
 }
 
 class _MedicationState extends State<Medication> {
-  // Dummy data for visualization - replace with your database data later
+  // Dummy data for visualization - replace with StreamBuilder later
   final List<Map<String, dynamic>> _medications = [
     {
       'name': 'Vitamin D',
@@ -38,7 +44,6 @@ class _MedicationState extends State<Medication> {
 
   @override
   Widget build(BuildContext context) {
-    // Access current theme data
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -162,7 +167,6 @@ class _MedicationState extends State<Medication> {
       ),
       child: Row(
         children: [
-          // Icon Box
           Container(
             height: 50,
             width: 50,
@@ -171,18 +175,11 @@ class _MedicationState extends State<Medication> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Image.asset(
-                'assets/icons/feed.png', // Ensure this asset exists
-                height: 24,
-                color: AppColors.primary,
-                errorBuilder: (c, o, s) =>
-                    Icon(Icons.medication, color: AppColors.primary),
-              ),
+              child: Icon(Icons.medication, color: AppColors.primary),
             ),
           ),
           const SizedBox(width: 15),
 
-          // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +199,6 @@ class _MedicationState extends State<Medication> {
             ),
           ),
 
-          // Time & Checkbox
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -222,7 +218,6 @@ class _MedicationState extends State<Medication> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Custom Checkbox
               InkWell(
                 onTap: () {
                   setState(() {
@@ -257,152 +252,315 @@ class _MedicationState extends State<Medication> {
   }
 
   void _showAddMedicationDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    final TextEditingController dateController = TextEditingController();
-    DateTime? selectedDate;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return Container(
-            height:
-                MediaQuery.of(context).size.height *
-                0.85, // Increased height for better view
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(25),
-                topRight: Radius.circular(25),
+      builder: (context) => const AddMedicationSheet(),
+    );
+  }
+}
+
+class AddMedicationSheet extends StatefulWidget {
+  const AddMedicationSheet({super.key});
+
+  @override
+  State<AddMedicationSheet> createState() => _AddMedicationSheetState();
+}
+
+class _AddMedicationSheetState extends State<AddMedicationSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _doseController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+
+  DateTime? _selectedDate;
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _doseController.dispose();
+    _typeController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveMedication() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_selectedDate == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Please select date & time',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc == null || userDoc.currentBabyId == null) {
+        throw Exception("No baby selected. Please select a baby first.");
+      }
+      final babyId = userDoc.currentBabyId!;
+
+      final String logId = const Uuid().v4();
+
+      final log = ActivityLogModel(
+        id: logId,
+        type: 'medication',
+        timestamp: _selectedDate!,
+        details: {
+          'name': _nameController.text.trim(),
+          'dosage': _doseController.text.trim(),
+          'type': _typeController.text.trim().isEmpty
+              ? 'Medicine'
+              : _typeController.text.trim(),
+          'isTaken': false,
+          'time': DateFormat('hh:mm a').format(_selectedDate!),
+        },
+      );
+
+      print("Saving Medication Log: ${log.toMap()}");
+
+      await DatabaseService().addActivityLog(user.uid, babyId, log);
+
+      print("Medication Saved Successfully");
+
+      if (mounted) {
+        Navigator.pop(context); // Close sheet
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Medication added successfully',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Error saving medication: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error saving medication: $e',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickDateTime() async {
+    final theme = Theme.of(context);
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(primary: AppColors.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && mounted) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        builder: (context, child) {
+          return Theme(
+            data: theme.copyWith(
+              colorScheme: theme.colorScheme.copyWith(
+                primary: AppColors.primary,
               ),
             ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 50,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text("Add Medication", style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 20),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: "Medicine Name",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.medication_liquid),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: "Dosage (e.g., 5ml)",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.scale),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                // Date & Time Picker Field
-                TextField(
-                  controller: dateController,
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: "Date & Time",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.calendar_today),
-                    suffixIcon: const Icon(Icons.arrow_drop_down),
-                  ),
-                  onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2101),
-                      builder: (context, child) {
-                        return Theme(
-                          data: theme.copyWith(
-                            colorScheme: theme.colorScheme.copyWith(
-                              primary: AppColors.primary,
-                            ),
-                          ),
-                          child: child!,
-                        );
-                      },
-                    );
-
-                    if (pickedDate != null) {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                        builder: (context, child) {
-                          return Theme(
-                            data: theme.copyWith(
-                              colorScheme: theme.colorScheme.copyWith(
-                                primary: AppColors.primary,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-
-                      if (pickedTime != null) {
-                        setState(() {
-                          selectedDate = DateTime(
-                            pickedDate.year,
-                            pickedDate.month,
-                            pickedDate.day,
-                            pickedTime.hour,
-                            pickedTime.minute,
-                          );
-                          dateController.text = DateFormat(
-                            'yyyy-MM-dd hh:mm a',
-                          ).format(selectedDate!);
-                        });
-                      }
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Save logic here using dateController.text and other fields
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Save Medication",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: child!,
           );
         },
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          _dateController.text = DateFormat(
+            'yyyy-MM-dd hh:mm a',
+          ).format(_selectedDate!);
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(25),
+          topRight: Radius.circular(25),
+        ),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text("Add Medication", style: theme.textTheme.headlineSmall),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: "Medicine Name",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.medication_liquid),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+              ),
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Enter name' : null,
+            ),
+            const SizedBox(height: 15),
+
+            TextFormField(
+              controller: _doseController,
+              decoration: InputDecoration(
+                labelText: "Dosage (e.g., 5ml, 1 pill)",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.scale),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+              ),
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Enter dosage' : null,
+            ),
+            const SizedBox(height: 15),
+
+            TextFormField(
+              controller: _typeController,
+              decoration: InputDecoration(
+                labelText: "Type (e.g., Antibiotic, Vitamin)",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.category),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            TextFormField(
+              controller: _dateController,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: "Date & Time",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.calendar_today),
+                suffixIcon: const Icon(Icons.arrow_drop_down),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 16,
+                ),
+              ),
+              onTap: _pickDateTime,
+            ),
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _saveMedication,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Save Medication",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

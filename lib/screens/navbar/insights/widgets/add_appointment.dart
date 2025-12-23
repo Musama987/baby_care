@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../utils/app_colors.dart';
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
+import '../../../../models/user_model.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -17,6 +22,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -75,6 +81,111 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       setState(() {
         _selectedTime = picked;
       });
+    }
+  }
+
+  Future<void> _saveAppointment() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Please select a date',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
+      if (_selectedTime == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Please select a time',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _isSaving = true;
+      });
+
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception("User not logged in");
+
+        final userDoc = await DatabaseService().getUser(user.uid);
+        if (userDoc == null || userDoc.currentBabyId == null) {
+          throw Exception("No baby selected");
+        }
+        final babyId = userDoc.currentBabyId!;
+
+        final String logId = const Uuid().v4();
+        // Construct DateTime from date and time
+        final DateTime appointmentDateTime = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+
+        final log = ActivityLogModel(
+          id: logId,
+          type: 'appointment',
+          timestamp: appointmentDateTime,
+          details: {
+            'title': _titleController.text.trim(),
+            'doctor': _doctorController.text.trim(),
+            'notes': _notesController.text.trim(),
+            'date':
+                "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+            'time': _selectedTime!.format(context),
+          },
+        );
+
+        await DatabaseService().addActivityLog(user.uid, babyId, log);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Appointment saved successfully',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Error saving appointment: $e',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+        }
+      }
     }
   }
 
@@ -183,12 +294,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // TODO: Save data logic
-                      Navigator.pop(context);
-                    }
-                  },
+                  onPressed: _isSaving ? null : _saveAppointment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
@@ -196,14 +302,23 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     ),
                     elevation: 4,
                   ),
-                  child: Text(
-                    "Save Appointment",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          "Save Appointment",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],

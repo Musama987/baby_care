@@ -247,7 +247,7 @@ class InsightsScreen extends StatelessWidget {
           // Action Button
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 60,
             child: ElevatedButton(
               onPressed: onTap,
               style: ElevatedButton.styleFrom(
