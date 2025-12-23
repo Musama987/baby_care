@@ -2,6 +2,8 @@ import 'package:baby_care/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
+import 'add_vaccines_record.dart';
 
 class VaccinesScreen extends StatefulWidget {
   const VaccinesScreen({super.key});
@@ -112,7 +114,13 @@ class _VaccinesScreenState extends State<VaccinesScreen> {
                 height: 50, // Reduced height
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Implement Add Record Logic
+                    PersistentNavBarNavigator.pushNewScreen(
+                      context,
+                      screen: const AddVaccineRecord(),
+                      withNavBar: false,
+                      pageTransitionAnimation:
+                          PageTransitionAnimation.cupertino,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
