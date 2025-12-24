@@ -17,7 +17,8 @@ class LogFeedScreen extends StatefulWidget {
 }
 
 class _LogFeedScreenState extends State<LogFeedScreen> {
-  int _selectedTab = 1; // 0: Nursing, 1: Bottle (Default), 2: Solids
+  // --- Log Tab State ---
+  int _selectedLogType = 1; // 0: Nursing, 1: Bottle (Default), 2: Solids
 
   // --- Bottle State ---
   double _bottleAmount = 4.5;
@@ -35,10 +36,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
   // --- Date State ---
   DateTime _selectedDate = DateTime.now();
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  bool _isSaving = false;
 
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
@@ -61,8 +59,6 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
       });
     }
   }
-
-  bool _isSaving = false;
 
   Future<void> _saveLog() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -104,7 +100,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
 
       ActivityLogModel? log;
 
-      if (_selectedTab == 0) {
+      if (_selectedLogType == 0) {
         // Nursing
         log = ActivityLogModel(
           id: logId,
@@ -123,7 +119,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
                 : 'Right', // Dominant side
           },
         );
-      } else if (_selectedTab == 1) {
+      } else if (_selectedLogType == 1) {
         // Bottle
         log = ActivityLogModel(
           id: logId,
@@ -170,7 +166,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
             ),
           ),
         );
-        // Do NOT pop here
+        Navigator.pop(context); // Pop back to home after saving
       }
     } catch (e) {
       if (mounted) {
@@ -212,7 +208,6 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
         } else {
           _leftStopwatch.start();
           // Automatically stop the other side if one starts?
-          // Usually breastfeeding tracking allows one side active at a time.
           if (_rightStopwatch.isRunning) _rightStopwatch.stop();
         }
       } else {
@@ -259,7 +254,7 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
           children: [
-            const SizedBox(height: 20), // Added space from top
+            const SizedBox(height: 10),
             // --- Custom Segmented Control ---
             Container(
               padding: const EdgeInsets.all(4),
@@ -323,11 +318,10 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
             const SizedBox(height: 40),
 
             // --- Content Views ---
-            _buildCurrentView(),
+            _buildCurrentLogView(),
 
             const SizedBox(height: 40),
 
@@ -364,17 +358,15 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
                       ),
               ),
             ),
-            const SizedBox(
-              height: 40,
-            ), // Added space from bottom for easier viewing
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCurrentView() {
-    switch (_selectedTab) {
+  Widget _buildCurrentLogView() {
+    switch (_selectedLogType) {
       case 0:
         return _buildNursingView();
       case 2:
@@ -678,40 +670,41 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
     );
   }
 
-  // --- Helpers ---
-
-  Widget _buildTabItem(int index, String label) {
-    bool isSelected = _selectedTab == index;
+  // Helper Widgets
+  Widget _buildTabItem(int index, String title) {
+    bool isSelected = _selectedLogType == index;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _selectedTab = index;
+            _selectedLogType = index;
           });
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 2),
+          duration: const Duration(milliseconds: 200),
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(25),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
                   ]
                 : [],
           ),
           child: Text(
-            label,
+            title,
             style: GoogleFonts.poppins(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : Colors.grey.shade500,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected
+                  ? const Color(0xFF1E2623)
+                  : Colors.grey.shade500,
             ),
           ),
         ),
@@ -720,23 +713,23 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
   }
 
   Widget _buildQtyBtn({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
       child: Container(
-        height: 60,
-        width: 60,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.white, size: 30),
+        child: Icon(icon, color: AppColors.primary, size: 28),
       ),
     );
   }
@@ -752,35 +745,25 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
       child: Column(
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 2),
-            height: 64,
-            width: 64,
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white : const Color(0xFFF1F5F2),
+              color: isSelected ? AppColors.primary : Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? AppColors.accentYellow : Colors.transparent,
-                width: 2,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : [],
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? AppColors.primary.withOpacity(0.4)
+                      : Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              size: 32,
-              // Color logic: if selected, use 'original' color look, else grey
-              color: isSelected
-                  ? (label == "Happy"
-                        ? Colors.orange
-                        : (label == "Fussy" ? Colors.grey : Colors.blue))
-                  : Colors.grey.shade400,
+              color: isSelected ? Colors.white : Colors.grey.shade400,
+              size: 28,
             ),
           ),
           const SizedBox(height: 8),
@@ -788,10 +771,8 @@ class _LogFeedScreenState extends State<LogFeedScreen> {
             label,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: isSelected
-                  ? const Color(0xFF1E2623)
-                  : Colors.grey.shade400,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? AppColors.primary : Colors.grey.shade400,
             ),
           ),
         ],

@@ -219,4 +219,63 @@ class DatabaseService {
               .toList();
         });
   }
+
+  // Get Logs with Flexible Filtering (Date Range, Type, Subtype)
+  Stream<List<ActivityLogModel>> getLogsStream({
+    required String uid,
+    required String babyId,
+    required String type,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? subtype,
+  }) {
+    Query query = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('babies')
+        .doc(babyId)
+        .collection('logs')
+        .where('type', isEqualTo: type);
+
+    if (subtype != null && subtype != 'All') {
+      query = query.where('subType', isEqualTo: subtype);
+    }
+
+    if (startDate != null) {
+      // Create start of day for startDate
+      final start = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+        0,
+        0,
+        0,
+      );
+      query = query.where('timestamp', isGreaterThanOrEqualTo: start);
+    }
+
+    if (endDate != null) {
+      // Create end of day for endDate
+      final end = DateTime(
+        endDate.year,
+        endDate.month,
+        endDate.day,
+        23,
+        59,
+        59,
+      );
+      query = query.where('timestamp', isLessThanOrEqualTo: end);
+    }
+
+    return query.orderBy('timestamp', descending: true).snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs
+          .map(
+            (doc) =>
+                ActivityLogModel.fromMap(doc.data() as Map<String, dynamic>),
+          )
+          .toList();
+    });
+  }
 }

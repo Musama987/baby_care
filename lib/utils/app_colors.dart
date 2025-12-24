@@ -63,4 +63,6 @@ class AppColors {
   static const Color inputFill = Color(0xFFF0F2F5);
   static const Color borderGray = Color(0xFFE0E0E0);
   static const Color shadowColor = Color(0x1F000000); // Soft black shadow
+  static const Color surface = backgroundLight; // Or Colors.orangeAccent
+  static const Color stroke = borderLight; // Or Colors.grey
 }

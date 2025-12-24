@@ -178,34 +178,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            // --- Add Measurement Button ---
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _showAddMeasurementModal,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    elevation: 4,
-                    shadowColor: AppColors.primary.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: Text(
-                    "Add Measurement",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -262,35 +234,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
         ),
       ),
     );
-  }
-
-  void _showAddMeasurementModal() async {
-    final String subType = _selectedTab == 1
-        ? 'height'
-        : (_selectedTab == 2 ? 'head' : 'weight');
-
-    // We no longer wait for result to save. The sheet handles saving.
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AddMeasurementSheet(
-        subType: subType,
-        unit: subType == 'weight' ? 'kg' : 'cm', // Default unit based on type
-      ),
-    );
-
-    // Refresh chart data immediately?
-    // The chart reads from memory `_getCurrentData()`.
-    // We need to re-fetch or the sheet should return the value to add to local state?
-    // Let's make the sheet return the value just for local state update,
-    // BUT the saving is done inside.
-    // Or we just reload from DB?
-    // Current code uses static lists `_weightData`. It doesn't fetch from DB yet for visualization!
-    // The user didn't ask to fix the chart fetching (which is static), only the SAVING UX.
-    // I will leave the charts as static/mock for now as per scope,
-    // but the save will go to DB.
-    // I'll ensure we don't break the existing mock visualization.
   }
 }
 

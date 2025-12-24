@@ -17,30 +17,58 @@ class Medication extends StatefulWidget {
 }
 
 class _MedicationState extends State<Medication> {
-  // Dummy data for visualization - replace with StreamBuilder later
-  final List<Map<String, dynamic>> _medications = [
-    {
-      'name': 'Vitamin D',
-      'dose': '2 Drops',
-      'time': '09:00 AM',
-      'type': 'Supplement',
-      'isTaken': true,
-    },
-    {
-      'name': 'Amoxicillin',
-      'dose': '5ml',
-      'time': '02:00 PM',
-      'type': 'Antibiotic',
-      'isTaken': false,
-    },
-    {
-      'name': 'Paracetamol',
-      'dose': '2.5ml',
-      'time': '08:00 PM',
-      'type': 'Fever',
-      'isTaken': false,
-    },
-  ];
+  Stream<List<ActivityLogModel>>? _medicationStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupStream();
+  }
+
+  void _setupStream() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc?.currentBabyId != null) {
+        setState(() {
+          _medicationStream = DatabaseService().getLogsStream(
+            uid: user.uid,
+            babyId: userDoc!.currentBabyId!,
+            type: 'medication',
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleTaken(ActivityLogModel log) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final userDoc = await DatabaseService().getUser(user.uid);
+    if (userDoc?.currentBabyId == null) return;
+    final babyId = userDoc!.currentBabyId!;
+
+    // Toggle status
+    final currentStatus = log.details['isTaken'] ?? false;
+    final newStatus = !currentStatus;
+
+    // Create updated log
+    final updatedDetails = Map<String, dynamic>.from(log.details);
+    updatedDetails['isTaken'] = newStatus;
+
+    final updatedLog = ActivityLogModel(
+      id: log.id,
+      type: log.type,
+      subType: log.subType,
+      timestamp: log.timestamp,
+      createdAt: log.createdAt, // Keep original creation time
+      details: updatedDetails,
+    );
+
+    // Update in DB (addActivityLog overwrites if ID exists)
+    await DatabaseService().addActivityLog(user.uid, babyId, updatedLog);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,94 +90,62 @@ class _MedicationState extends State<Medication> {
           icon: Icon(Icons.arrow_back_ios, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _showAddMedicationDialog(context);
-            },
-            icon: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.1),
-              ),
-              child: Icon(Icons.add, color: AppColors.primary),
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
+        actions: [const SizedBox(width: 10)],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
+        child: _medicationStream == null
+            ? const Center(child: CircularProgressIndicator())
+            : StreamBuilder<List<ActivityLogModel>>(
+                stream: _medicationStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final allLogs = snapshot.data ?? [];
+
+                  // Sort by time Ascending (Past -> Future)
+                  allLogs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Today's Schedule",
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "3 doses remaining",
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
+                      // Medication List
+                      Expanded(
+                        child: allLogs.isEmpty
+                            ? Center(
+                                child: Text(
+                                  "No medications recorded",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: allLogs.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 15),
+                                itemBuilder: (context, index) {
+                                  final log = allLogs[index];
+                                  return _buildMedicationCard(log, theme);
+                                },
+                              ),
                       ),
                     ],
-                  ),
-                  const Icon(
-                    Icons.calendar_today,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            Text(
-              "Upcoming Doses",
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onBackground,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 15),
-
-            // Medication List
-            Expanded(
-              child: ListView.separated(
-                itemCount: _medications.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 15),
-                itemBuilder: (context, index) {
-                  final med = _medications[index];
-                  return _buildMedicationCard(med, theme);
+                  );
                 },
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildMedicationCard(Map<String, dynamic> med, ThemeData theme) {
+  Widget _buildMedicationCard(ActivityLogModel log, ThemeData theme) {
+    final name = log.details['name'] ?? 'Medication';
+    final dose = log.details['dosage'] ?? '';
+    final type = log.details['type'] ?? 'Medicine';
+    final time =
+        log.details['time'] ?? DateFormat('hh:mm a').format(log.timestamp);
+    final isTaken = log.details['isTaken'] ?? false;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -185,12 +181,12 @@ class _MedicationState extends State<Medication> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  med['name'],
+                  name,
                   style: theme.textTheme.titleMedium?.copyWith(fontSize: 16),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${med['dose']} • ${med['type']}",
+                  "$dose • $type • ${DateFormat('MMM dd, yyyy').format(log.timestamp)}",
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.grey,
                   ),
@@ -209,7 +205,7 @@ class _MedicationState extends State<Medication> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  med['time'],
+                  time,
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -219,27 +215,19 @@ class _MedicationState extends State<Medication> {
               ),
               const SizedBox(height: 8),
               InkWell(
-                onTap: () {
-                  setState(() {
-                    med['isTaken'] = !med['isTaken'];
-                  });
-                },
+                onTap: () => _toggleTaken(log),
                 child: Container(
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: med['isTaken']
-                        ? AppColors.primary
-                        : Colors.transparent,
+                    color: isTaken ? AppColors.primary : Colors.transparent,
                     border: Border.all(
-                      color: med['isTaken']
-                          ? AppColors.primary
-                          : Colors.grey.shade400,
+                      color: isTaken ? AppColors.primary : Colors.grey.shade400,
                       width: 2,
                     ),
                   ),
-                  child: med['isTaken']
+                  child: isTaken
                       ? const Icon(Icons.check, size: 16, color: Colors.white)
                       : null,
                 ),
@@ -248,15 +236,6 @@ class _MedicationState extends State<Medication> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showAddMedicationDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const AddMedicationSheet(),
     );
   }
 }
@@ -354,6 +333,9 @@ class _AddMedicationSheetState extends State<AddMedicationSheet> {
             ),
             backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }

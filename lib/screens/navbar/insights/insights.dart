@@ -1,6 +1,6 @@
-import 'package:baby_care/screens/navbar/home/widgets/log_diaper.dart';
-import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
-import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/feed_history.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/sleep_history.dart';
+import 'package:baby_care/screens/navbar/insights/widgets/diaper_history.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/appointment.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
 import 'package:baby_care/screens/navbar/insights/widgets/medication.dart';
@@ -39,14 +39,14 @@ class InsightsScreen extends StatelessWidget {
               // --- Log Feed Card ---
               _buildHealthCard(
                 context,
-                title: "Log Feed",
+                title: "Feed History",
                 subtitle: "Track breastfeeding, bottle, and solids.",
                 icon: Icons.baby_changing_station,
                 buttonText: "View Feed Log",
                 onTap: () {
                   PersistentNavBarNavigator.pushNewScreen(
                     context,
-                    screen: const LogFeedScreen(),
+                    screen: const FeedHistoryScreen(),
                     withNavBar: false,
                     pageTransitionAnimation: PageTransitionAnimation.cupertino,
                   );
@@ -57,14 +57,14 @@ class InsightsScreen extends StatelessWidget {
               // --- Log Sleep Card ---
               _buildHealthCard(
                 context,
-                title: "Log Sleep",
+                title: "Sleep History",
                 subtitle: "Monitor sleep patterns and duration.",
                 icon: Icons.nightlight_round,
                 buttonText: "View Sleep Log",
                 onTap: () {
                   PersistentNavBarNavigator.pushNewScreen(
                     context,
-                    screen: const LogSleepScreen(),
+                    screen: const SleepHistoryScreen(),
                     withNavBar: false,
                     pageTransitionAnimation: PageTransitionAnimation.cupertino,
                   );
@@ -75,14 +75,14 @@ class InsightsScreen extends StatelessWidget {
               // --- Log Diaper Card ---
               _buildHealthCard(
                 context,
-                title: "Log Diaper",
+                title: "Diaper History",
                 subtitle: "Track diaper changes and health indicators.",
                 icon: Icons.layers,
                 buttonText: "View Diaper Log",
                 onTap: () {
                   PersistentNavBarNavigator.pushNewScreen(
                     context,
-                    screen: const LogDiaperScreen(),
+                    screen: const DiaperHistoryScreen(),
                     withNavBar: false,
                     pageTransitionAnimation: PageTransitionAnimation.cupertino,
                   );

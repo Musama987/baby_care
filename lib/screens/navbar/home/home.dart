@@ -5,10 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_feed.dart';
 import 'package:baby_care/screens/navbar/home/widgets/log_sleep.dart';
-import 'package:baby_care/screens/navbar/insights/widgets/growth.dart';
-import 'package:baby_care/screens/navbar/insights/widgets/vaccines.dart';
-import 'package:baby_care/screens/navbar/insights/widgets/appointment.dart';
-import 'package:baby_care/screens/navbar/insights/widgets/medication.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_vaccine.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_growth.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_appointment.dart';
+import 'package:baby_care/screens/navbar/home/widgets/log_medication.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/database_service.dart';
@@ -347,7 +347,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       onTap: () {
                         PersistentNavBarNavigator.pushNewScreen(
                           context,
-                          screen: const GrowthScreen(),
+                          screen: const LogGrowthScreen(),
                           withNavBar: false,
                           pageTransitionAnimation:
                               PageTransitionAnimation.cupertino,
@@ -362,7 +362,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       onTap: () {
                         PersistentNavBarNavigator.pushNewScreen(
                           context,
-                          screen: const VaccinesScreen(),
+                          screen: const LogVaccineScreen(),
                           withNavBar: false,
                           pageTransitionAnimation:
                               PageTransitionAnimation.cupertino,
@@ -377,7 +377,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       onTap: () {
                         PersistentNavBarNavigator.pushNewScreen(
                           context,
-                          screen: const AppointmentScreen(),
+                          screen: const LogAppointmentScreen(),
                           withNavBar: false,
                           pageTransitionAnimation:
                               PageTransitionAnimation.cupertino,
@@ -392,7 +392,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       onTap: () {
                         PersistentNavBarNavigator.pushNewScreen(
                           context,
-                          screen: const Medication(),
+                          screen: const LogMedicationScreen(),
                           withNavBar: false,
                           pageTransitionAnimation:
                               PageTransitionAnimation.cupertino,

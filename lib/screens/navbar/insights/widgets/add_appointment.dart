@@ -135,7 +135,13 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         final log = ActivityLogModel(
           id: logId,
           type: 'appointment',
-          timestamp: DateTime.now(),
+          timestamp: DateTime(
+            _selectedDate!.year,
+            _selectedDate!.month,
+            _selectedDate!.day,
+            _selectedTime!.hour,
+            _selectedTime!.minute,
+          ),
           createdAt: DateTime.now(),
           details: {
             'title': _titleController.text.trim(),

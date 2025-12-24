@@ -19,8 +19,7 @@ class LogDiaperScreen extends StatefulWidget {
 
 class _LogDiaperScreenState extends State<LogDiaperScreen> {
   // 0: Wet, 1: Dirty, 2: Mixed
-  // Defaulting to 0 (Wet) as requested, or keep 1 (Dirty) if preferred.
-  // Let's keep 1 to match previous flow, but user can click 0.
+  // Defaulting to 1 (Dirty) to match previous flow
   int _selectedType = 1;
 
   // Stool Color Selection (Null if none selected)
@@ -120,7 +119,7 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
             ),
           ),
         );
-        // Do NOT pop here
+        Navigator.pop(context); // Pop back to home after saving
       }
     } catch (e) {
       if (mounted) {
@@ -161,6 +160,15 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
+        title: Text(
+          "Log Diaper",
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1E2623),
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -169,207 +177,196 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            children: [
-              // --- Date Picker ---
-              GestureDetector(
-                onTap: _pickDate,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.calendar_today_rounded,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormat('MMM dd, yyyy').format(_selectedDate),
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E2623),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          children: [
+            // --- Date Picker ---
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              ),
-              const SizedBox(height: 20),
-              const SizedBox(height: 5),
-              Text(
-                "Log Diaper",
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E2623),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-              ),
-              const SizedBox(height: 40),
-
-              // --- 1. Type Selector (Wet, Dirty, Mixed) ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildTypeCard(
-                    0,
-                    "Wet",
-                    Icons.water_drop,
-                    const Color(0xFFFFD54F),
-                  ),
-                  const SizedBox(width: 12),
-                  _buildTypeCard(
-                    1,
-                    "Dirty",
-                    Icons.grass,
-                    const Color(0xFF8D6E63),
-                  ),
-                  const SizedBox(width: 12),
-                  _buildTypeCard(
-                    2,
-                    "Mixed",
-                    Icons.layers,
-                    const Color(0xFFEF9A9A),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
-              // --- 2. Stool Color (Always Visible & Selectable) ---
-              Column(
-                children: [
-                  Text(
-                    "Stool Color",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1E2623),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 16,
+                      color: AppColors.primary,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 20,
-                    runSpacing: 20,
-                    alignment: WrapAlignment.center,
-                    children: List.generate(_stoolColors.length, (index) {
-                      return _buildColorCircle(index);
-                    }),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(
+                      DateFormat('MMM dd, yyyy').format(_selectedDate),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF1E2623),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+            const SizedBox(height: 20),
+            const SizedBox(height: 5),
 
-              const SizedBox(height: 50),
+            // --- 1. Type Selector (Wet, Dirty, Mixed) ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildTypeCard(
+                  0,
+                  "Wet",
+                  Icons.water_drop,
+                  const Color(0xFFFFD54F),
+                ),
+                const SizedBox(width: 12),
+                _buildTypeCard(
+                  1,
+                  "Dirty",
+                  Icons.grass,
+                  const Color(0xFF8D6E63),
+                ),
+                const SizedBox(width: 12),
+                _buildTypeCard(
+                  2,
+                  "Mixed",
+                  Icons.layers,
+                  const Color(0xFFEF9A9A),
+                ),
+              ],
+            ),
 
-              // --- 3. Add Photo ---
-              GestureDetector(
-                onTap: _pickImage,
-                child: _selectedImage != null
-                    ? Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          image: DecorationImage(
-                            image: FileImage(_selectedImage!),
-                            fit: BoxFit.cover,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
+            const SizedBox(height: 40),
+
+            // --- 2. Stool Color (Always Visible & Selectable) ---
+            Column(
+              children: [
+                Text(
+                  "Stool Color",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1E2623),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  alignment: WrapAlignment.center,
+                  children: List.generate(_stoolColors.length, (index) {
+                    return _buildColorCircle(index);
+                  }),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 50),
+
+            // --- 3. Add Photo ---
+            GestureDetector(
+              onTap: _pickImage,
+              child: _selectedImage != null
+                  ? Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
                         ),
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              radius: 16,
-                              child: Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.camera_alt_outlined,
-                            color: const Color(0xFF1E2623),
-                            size: 24,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Add Photo",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF1E2623),
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
                           ),
                         ],
                       ),
-              ),
-
-              const SizedBox(height: 60),
-
-              // --- 4. Save Button ---
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _saveLog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 5,
-                    shadowColor: AppColors.primary.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(
-                          "Save Log",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 16,
+                            child: Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.camera_alt_outlined,
+                          color: const Color(0xFF1E2623),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "Add Photo",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF1E2623),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+
+            const SizedBox(height: 60),
+
+            // --- 4. Save Button ---
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _saveLog,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 5,
+                  shadowColor: AppColors.primary.withOpacity(0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        "Save Log",
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
@@ -389,8 +386,6 @@ class _LogDiaperScreenState extends State<LogDiaperScreen> {
         onTap: () {
           setState(() {
             _selectedType = index;
-            // Removed logic that cleared _selectedColorIndex
-            // Now you can keep your stool color selection even if you switch types
           });
         },
         child: AnimatedContainer(

@@ -117,12 +117,7 @@ class _LogSleepScreenState extends State<LogSleepScreen> {
             ),
           ),
         );
-        // Do NOT pop here as requested
-        // Reset timer/sleep state if desired, or keep as is?
-        // User said "stop and save", usually implies session end.
-        // Let's reset the "isSleeping" state purely (already done in stopAndSave)
-        // We might want to reset the duration or keep it visible as "Last saved session".
-        // For now, minimal change: just don't pop.
+        Navigator.pop(context); // Pop back to home after saving
       }
     } catch (e) {
       print(e);
@@ -138,11 +133,6 @@ class _LogSleepScreenState extends State<LogSleepScreen> {
         });
       }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
@@ -218,7 +208,14 @@ class _LogSleepScreenState extends State<LogSleepScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text("Log Sleep"),
+        title: Text(
+          "Log Sleep",
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1E2623),
+          ),
+        ),
       ),
       body: SafeArea(
         child: Column(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart'; // Import the package
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import '../../../../utils/app_colors.dart';
-import 'add_appointment.dart'; // Import the add screen
+import '../../../../services/database_service.dart';
+import '../../../../models/activity_log_model.dart';
 
 class AppointmentScreen extends StatefulWidget {
   const AppointmentScreen({super.key});
@@ -13,19 +15,47 @@ class AppointmentScreen extends StatefulWidget {
 
 class _AppointmentScreenState extends State<AppointmentScreen> {
   // 0 = Upcoming, 1 = Past
-  int _selectedTab = 0;
 
+  Stream<List<ActivityLogModel>>? _appointmentStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupStream();
+  }
+
+  void _setupStream() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await DatabaseService().getUser(user.uid);
+      if (userDoc?.currentBabyId != null) {
+        setState(() {
+          _appointmentStream = DatabaseService().getLogsStream(
+            uid: user.uid,
+            babyId: userDoc!.currentBabyId!,
+            type: 'appointment',
+          );
+        });
+      }
+    }
+  }
+
+  @override
   @override
   Widget build(BuildContext context) {
     // Detect theme brightness to switch colors dynamically
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Appointments",
-          style: Theme.of(context).appBarTheme.titleTextStyle,
+          "All Appointments",
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : AppColors.textDark,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -38,155 +68,129 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          // --- UPDATED PLUS ICON WITH PERSISTENT PUSH ---
-          IconButton(
-            onPressed: () {
-              PersistentNavBarNavigator.pushNewScreen(
-                context,
-                screen: const AddAppointmentScreen(),
-                withNavBar:
-                    false, // Set to false to hide the tab bar on the new screen
-                pageTransitionAnimation: PageTransitionAnimation.cupertino,
-              );
-            },
-            icon: const Icon(Icons.add_circle_outline_rounded),
-            color: AppColors.primary,
-            iconSize: 28,
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 16),
-          // Custom Tab Switcher
-          _buildTabSegment(isDark),
-          const SizedBox(height: 24),
-          // Appointments List
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              itemCount: _selectedTab == 0 ? 3 : 5, // Mock count
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                return _buildAppointmentCard(index, isDark);
+      body: _appointmentStream == null
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<List<ActivityLogModel>>(
+              stream: _appointmentStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final logs = snapshot.data ?? [];
+
+                if (logs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.event_busy,
+                          size: 64,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No appointments found",
+                          style: GoogleFonts.poppins(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Sort Ascending (Past -> Future)
+                logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  itemCount: logs.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    return _buildAppointmentCard(logs[index], isDark);
+                  },
+                );
               },
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildTabSegment(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.inputFill,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _buildTabButton("Upcoming", 0, isDark)),
-          Expanded(child: _buildTabButton("Past", 1, isDark)),
-        ],
-      ),
-    );
-  }
+  Widget _buildAppointmentCard(ActivityLogModel log, bool isDark) {
+    final title = log.details['title'] ?? "Appointment";
+    final doctor = log.details['doctor'] ?? "Doctor";
+    final notes = log.details['notes'] ?? "";
 
-  Widget _buildTabButton(String text, int index, bool isDark) {
-    final isSelected = _selectedTab == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedTab = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected
-                ? Colors.white
-                : (isDark ? Colors.grey[400] : AppColors.textLightGray),
-          ),
-        ),
-      ),
-    );
-  }
+    final date = DateFormat('dd').format(log.timestamp);
+    final month = DateFormat('MMM').format(log.timestamp);
+    final year = DateFormat('yyyy').format(log.timestamp);
+    final time = DateFormat('hh:mm a').format(log.timestamp);
 
-  Widget _buildAppointmentCard(int index, bool isDark) {
-    // Mock Data
-    final title = index.isEven ? "Vaccination" : "General Checkup";
-    final date = index.isEven ? "12" : "15";
-    final month = "Oct";
-    final time = "09:30 AM";
-    final doctor = "Dr. Sarah Wilson";
+    // Dynamic Logic:
+    // If date is in past (> 24h ago) -> Greyed out / History style?
+    // User just asked for "Upcoming and Past overall show"
+    // We already sorted them. Let's just make the card look good.
 
-    // Choose accent color based on type
-    final accentColor = index.isEven
-        ? AppColors.accentBlue
-        : AppColors.accentPink;
+    final isPast = log.timestamp.isBefore(DateTime.now());
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[100]!,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadowColor.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Date Box
           Container(
-            width: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            width: 65,
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: isPast
+                  ? Colors.grey.withOpacity(0.1)
+                  : AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
                 Text(
                   date,
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: accentColor,
+                    color: isPast ? Colors.grey : AppColors.primary,
                   ),
                 ),
                 Text(
                   month,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: accentColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isPast ? Colors.grey : AppColors.primary,
+                  ),
+                ),
+                Text(
+                  year,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: isPast
+                        ? Colors.grey
+                        : AppColors.primary.withOpacity(0.8),
                   ),
                 ),
               ],
@@ -198,13 +202,44 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : AppColors.textDark,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppColors.textDark,
+                          decoration: isPast
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isPast)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "Done",
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -218,7 +253,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     Text(
                       time,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.textLightGray,
                       ),
                     ),
@@ -236,19 +272,27 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     Text(
                       doctor,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: AppColors.textLightGray,
                       ),
                     ),
                   ],
                 ),
+                if (notes.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    notes,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 16,
-            color: AppColors.textLightGray,
           ),
         ],
       ),
